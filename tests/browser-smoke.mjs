@@ -9,9 +9,12 @@ import os from 'node:os';
 const project = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 process.chdir(project);
 const qa = await fs.mkdtemp(path.join(os.tmpdir(), 'ds-review-qa-'));
-const evidence = path.join(project, 'docs', 'verification');
+const evidence = process.env.REVISION_EVIDENCE_DIR
+  ? path.resolve(process.env.REVISION_EVIDENCE_DIR)
+  : path.join(project, 'docs', 'verification');
 await fs.mkdir(evidence, { recursive: true });
-const site = pathToFileURL(path.resolve('dist/index.html')).href;
+const site = process.env.REVISION_SITE_URL || pathToFileURL(path.resolve('dist/index.html')).href;
+const siteOrigin = new URL(site).origin;
 const chrome = process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 await fs.access(chrome);
 const browser = spawn(chrome, [
@@ -69,7 +72,7 @@ try {
       pending.delete(message.id);
     }
     if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails.exception?.description || message.params.exceptionDetails.text);
-    if (message.method === 'Network.requestWillBeSent' && /^https?:/i.test(message.params.request.url)) webRequests.push(message.params.request.url);
+    if (message.method === 'Network.requestWillBeSent' && /^https?:/i.test(message.params.request.url) && new URL(message.params.request.url).origin !== siteOrigin) webRequests.push(message.params.request.url);
   };
   await call('Page.enable'); await call('Runtime.enable'); await call('Network.enable'); await call('DOM.enable');
   await call('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }, { name: 'prefers-color-scheme', value: 'dark' }] });

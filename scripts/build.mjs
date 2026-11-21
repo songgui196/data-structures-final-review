@@ -1,4 +1,5 @@
 ﻿import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildExam } from '../assets/core.mjs';
@@ -80,8 +81,10 @@ function chapterMarkdown(ch) {
 
 const output = path.join(root, 'dist');
 const appSource = fs.readFileSync(path.join(root, 'assets', 'app.js'), 'utf8');
+const stylesSource = fs.readFileSync(path.join(root, 'assets', 'styles.css'), 'utf8');
 const coreSource = fs.readFileSync(path.join(root, 'assets', 'core.mjs'), 'utf8').replace(/^\uFEFF/, '').replace(/^export /gm, '');
 const coreExpose = '\nwindow.ReviewCore = { normalizeAnswer, shuffle, buildQuiz, buildExam, scoreQuiz, quickSortTrace, kmpTrace, bfsTrace, makeProgress, recordAttempt, exportProgress, importProgress };\n';
+const contentVersion = content => createHash('sha256').update(content).digest('hex').slice(0, 12);
 const payload = { title: '数据结构期末复习', textbook: '数据结构（C语言版）（第3版）', chapters, scopeRows: [
   { chapter: '1 绪论', focus: '数据、数据元素、抽象数据类型与算法分析。', note: '算法性质和复杂度是基础；按章节自编选择练习。' },
   { chapter: '2 线性表', focus: '顺序表插入/查找与单链表头插、尾插。', note: '程序训练标明下标和带/不带头结点。' },
@@ -92,10 +95,19 @@ const payload = { title: '数据结构期末复习', textbook: '数据结构（C
   { chapter: '7 查找', focus: '折半查找及代码；二叉排序树构造。', note: '边界使用闭区间，重复键策略单独说明。' },
   { chapter: '8 排序', focus: '插入、希尔、冒泡、快速；堆与归并基础。', note: '希尔增量、快排分区方法显式给出。' },
 ] };
-write(path.join(output, 'index.html'), fs.readFileSync(path.join(root, 'assets', 'index.html'), 'utf8'));
-write(path.join(output, 'styles.css'), fs.readFileSync(path.join(root, 'assets', 'styles.css'), 'utf8'));
-write(path.join(output, 'data.js'), `window.REVISION_DATA = ${JSON.stringify(payload)};\n`);
-write(path.join(output, 'app.js'), `${coreSource}${coreExpose}\n${appSource}`);
+const dataContent = `window.REVISION_DATA = ${JSON.stringify(payload)};\n`;
+const appContent = `${coreSource}${coreExpose}\n${appSource}`;
+const dataVersion = contentVersion(dataContent);
+const appVersion = contentVersion(appContent);
+const stylesVersion = contentVersion(stylesSource);
+const html = fs.readFileSync(path.join(root, 'assets', 'index.html'), 'utf8')
+  .replace('href="styles.css"', `href="styles.css?v=${stylesVersion}"`)
+  .replace('src="data.js"', `src="data.js?v=${dataVersion}"`)
+  .replace('src="app.js"', `src="app.js?v=${appVersion}"`);
+write(path.join(output, 'index.html'), html);
+write(path.join(output, 'styles.css'), stylesSource);
+write(path.join(output, 'data.js'), dataContent);
+write(path.join(output, 'app.js'), appContent);
 
 const skill = path.join(root, '.agents', 'skills', 'data-structures-c');
 const terms = new Map();

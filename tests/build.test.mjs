@@ -1,5 +1,6 @@
 ﻿import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
@@ -13,6 +14,13 @@ test('build emits a self-contained offline site and a portable skill', () => {
   assert.match(html, /styles\.css/);
   assert.match(html, /data\.js/);
   assert.match(html, /app\.js/);
+  const styles = fs.readFileSync('dist/styles.css');
+  const stylesVersion = html.match(/href="styles\.css\?v=([a-f0-9]{12})"/)?.[1];
+  const dataVersion = html.match(/src="data\.js\?v=([a-f0-9]{12})"/)?.[1];
+  const appVersion = html.match(/src="app\.js\?v=([a-f0-9]{12})"/)?.[1];
+  assert.equal(stylesVersion, createHash('sha256').update(styles).digest('hex').slice(0, 12), 'stylesheet URL should be content-versioned');
+  assert.equal(dataVersion, createHash('sha256').update(data).digest('hex').slice(0, 12), 'data URL should be content-versioned');
+  assert.equal(appVersion, createHash('sha256').update(app).digest('hex').slice(0, 12), 'application URL should be content-versioned');
   assert.match(app, /window\.ReviewCore/);
   assert.match(data, /window\.REVISION_DATA/);
   assert.doesNotMatch(html + app + data, /https?:\/\//);
