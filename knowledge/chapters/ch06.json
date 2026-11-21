@@ -1,0 +1,591 @@
+{
+  "id": "ch06",
+  "number": 6,
+  "title": "图",
+  "summary": "区分邻接矩阵与邻接表，按固定邻接次序完成DFS/BFS，再练习Prim/Kruskal最小生成树和Dijkstra/Floyd最短路径。图题须交代有向性、权值、起点和并列选择规则。",
+  "examFocus": [
+    "纪要把遍历列为章节选择训练，并在条件成立时强调最小生成树综合应用；不把条件句改写成必考。",
+    "Prim从指定顶点开始；Kruskal按权选不成环的边。并列边按题目给出的规则处理。",
+    "单源非负边权用Dijkstra，多源最短路用Floyd，注意∞和对角线初始化。"
+  ],
+  "topics": [
+    {
+      "id": "ch06-graph-model",
+      "title": "图的术语与存储",
+      "priority": "foundation",
+      "examTypes": [
+        "choice",
+        "fill"
+      ],
+      "examEvidence": {
+        "level": "emphasis",
+        "note": "纪要要求熟悉图的表示与章节概念；本主题统一后续算法的建模口径。"
+      },
+      "summary": "图G由顶点集V和边集E组成。有向边为有序对，无向边为无序对。邻接矩阵用n×n数组记录邻接关系或边权，查询直接但空间O(n²)；邻接表按顶点保存其邻边，适合稀疏图。无向图每条边在两个端点的邻接表中各出现一次；有向图只记录弧的起点所发出的边。带权图的路径长度为边权之和，无权图则按边数计。算法前先确定有向性、边权以及不存在的边标记，避免把∞当成可相加的普通值。",
+      "concepts": [
+        {
+          "term": "邻接矩阵",
+          "definition": "A[i][j]表示顶点i到j是否邻接或相应边权。"
+        },
+        {
+          "term": "邻接表",
+          "definition": "每个顶点保存其相邻顶点/出边链表。"
+        },
+        {
+          "term": "度与入出度",
+          "definition": "无向图计度；有向图区分入度与出度。"
+        }
+      ],
+      "steps": [
+        "确定顶点编号和边的方向。",
+        "按题目约定建立矩阵或邻接表。",
+        "确认无边标记和对角线取值。"
+      ],
+      "formulas": [
+        {
+          "label": "邻接矩阵空间",
+          "expression": "O(n²)",
+          "condition": "n个顶点"
+        },
+        {
+          "label": "无向图度数和",
+          "expression": "2|E|",
+          "condition": "按握手定理"
+        }
+      ],
+      "pitfalls": [
+        "无向边在邻接表中通常记录两次。",
+        "无边的∞值不能直接参与普通有限数值计算。",
+        "有向边(u,v)不能自动视为(v,u)。"
+      ],
+      "example": {
+        "title": "邻接表计数",
+        "problem": "无向图含5条边，用邻接表共记录多少条邻接关系？",
+        "steps": [
+          "每条无向边分别列在两个端点表中。",
+          "记录数=2×5。"
+        ],
+        "answer": "共10条邻接关系。",
+        "origin": "original",
+        "sourceNote": "依据所列教材章节概念与约定重新设计的自编例题。"
+      },
+      "code": null,
+      "source": {
+        "section": "6.1 图的定义和基本术语；6.4.1 邻接矩阵；6.4.2 邻接表",
+        "printedPages": [
+          184,
+          193
+        ],
+        "pdfPages": [
+          196,
+          205
+        ],
+        "verified": "text"
+      },
+      "related": []
+    },
+    {
+      "id": "ch06-traversal",
+      "title": "DFS与BFS遍历",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "calculation",
+        "coding"
+      ],
+      "examEvidence": {
+        "level": "likely",
+        "note": "纪要将图遍历列为选择题优先；具体序列还依赖起点和邻接访问次序。"
+      },
+      "summary": "深度优先搜索沿未访问邻点递归深入，不能继续时回溯；广度优先搜索用队列先访问离起点较近的顶点。每次首次发现顶点就立即标记，再压栈、递归或入队，确保不会反复处理同一顶点。若图不连通，从单一起点搜索无法覆盖全图，需外层循环对尚未访问的顶点再次启动。遍历次序受邻接表顺序影响，题面应给出顺序，否则可存在多个合法答案。邻接表表示下两者复杂度均为O(|V|+|E|)。",
+      "concepts": [
+        {
+          "term": "DFS",
+          "definition": "沿未访问邻点深入，无法继续时回溯。"
+        },
+        {
+          "term": "BFS",
+          "definition": "用FIFO队列逐层扩展。"
+        },
+        {
+          "term": "连通分量",
+          "definition": "对仍未访问的顶点再次启动遍历。"
+        }
+      ],
+      "steps": [
+        "清空visited标记。",
+        "标记起点后开始搜索。",
+        "DFS递归邻点，BFS则出队后扫描邻点。",
+        "非连通图继续检查未访问顶点。"
+      ],
+      "formulas": [
+        {
+          "label": "邻接表遍历复杂度",
+          "expression": "O(|V|+|E|)",
+          "condition": "顶点和边各被常数次处理"
+        }
+      ],
+      "pitfalls": [
+        "邻接次序未固定时遍历序列不唯一。",
+        "BFS要在入队时标记，避免重复入队。",
+        "仅有一个连通分量时才可由一个起点覆盖所有顶点。"
+      ],
+      "example": {
+        "title": "固定次序BFS",
+        "problem": "无向图A邻接B,C；B邻接A,D；C邻接A,D；D邻接B,C，邻点按字母序，求从A开始的BFS。",
+        "steps": [
+          "A出队，B、C依序入队。",
+          "B出队并发现D。",
+          "C出队时D已标记。",
+          "D出队。"
+        ],
+        "answer": "A、B、C、D。",
+        "origin": "original",
+        "sourceNote": "依据所列教材章节概念与约定重新设计的自编例题。"
+      },
+      "code": {
+        "language": "textbook-c",
+        "label": "重构类C示例：邻接表BFS",
+        "text": "void BFS(Graph G, Vertex s) {\n    InitQueue(&Q);\n    visited[s] = true; EnQueue(&Q, s);\n    while (!QueueEmpty(Q)) {\n        v = DeQueue(&Q); Visit(v);\n        for (w = FirstAdj(G, v); w; w = NextAdj(G, v, w))\n            if (!visited[w]) {\n                visited[w] = true;\n                EnQueue(&Q, w);\n            }\n    }\n}",
+        "notes": [
+          "假设从s所在连通分量开始；全图遍历需外层循环补充其他分量。",
+          "FirstAdj/NextAdj为抽象邻接迭代接口，教材类C示意。"
+        ]
+      },
+      "source": {
+        "section": "6.5 图的遍历",
+        "printedPages": [
+          196,
+          200
+        ],
+        "pdfPages": [
+          208,
+          212
+        ],
+        "verified": "text"
+      },
+      "related": []
+    },
+    {
+      "id": "ch06-mst",
+      "title": "Prim与Kruskal最小生成树",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "calculation",
+        "integrated"
+      ],
+      "examEvidence": {
+        "level": "emphasis",
+        "note": "纪要在“如果出现在综合应用里”的条件下强调最小生成树；并列权值不唯一时需遵循题设或接受等价解。"
+      },
+      "summary": "连通无向带权图的最小生成树覆盖所有顶点、无回路并含|V|−1条边。Prim从指定顶点开始，每轮选连接当前树内外顶点的最小权边；Kruskal将边按权排序，仅接纳连接不同连通分量的边。Prim扩展单个连通树，Kruskal不断合并森林。非连通图不能有覆盖全图的生成树。多条等权边可能产生不同但权值相同的MST；构造题需指定并列规则，或说明任何合法最小树均可。检查解时同时核对连通、无环、边数和总权。",
+      "concepts": [
+        {
+          "term": "生成树",
+          "definition": "连通无向图中覆盖所有顶点且无回路的子图。"
+        },
+        {
+          "term": "Prim",
+          "definition": "从起点开始增长一棵树。"
+        },
+        {
+          "term": "Kruskal",
+          "definition": "按权增序选择连接不同分量的边。"
+        }
+      ],
+      "steps": [
+        "Prim：固定起点，维护树内到树外的最轻边。",
+        "Kruskal：排序全体边，逐条检查是否成环。",
+        "达到|V|−1条边后结束。",
+        "复核覆盖全体顶点且总权最小。"
+      ],
+      "formulas": [
+        {
+          "label": "生成树边数",
+          "expression": "|V|−1",
+          "condition": "连通无向图"
+        },
+        {
+          "label": "Kruskal时间",
+          "expression": "O(|E| log |E|)",
+          "condition": "主要来自边排序"
+        }
+      ],
+      "pitfalls": [
+        "把图的边数|E|误作生成树边数。",
+        "Kruskal必须跳过导致环的边。",
+        "Prim每次必须连接当前树外顶点，不能在树内选边。"
+      ],
+      "example": {
+        "title": "Kruskal四点例题",
+        "problem": "边AB=1、BC=2、CD=3、AC=4、BD=5，求一个MST。",
+        "steps": [
+          "按权排序。",
+          "选AB、BC、CD，均不成环。",
+          "已经有4−1=3条边。"
+        ],
+        "answer": "MST为{AB,BC,CD}，总权6。",
+        "origin": "original",
+        "sourceNote": "依据所列教材章节概念与约定重新设计的自编例题。"
+      },
+      "code": null,
+      "source": {
+        "section": "6.6.1 最小生成树",
+        "printedPages": [
+          200,
+          205
+        ],
+        "pdfPages": [
+          212,
+          217
+        ],
+        "verified": "text"
+      },
+      "related": []
+    },
+    {
+      "id": "ch06-shortest-path",
+      "title": "Dijkstra与Floyd最短路径",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "fill",
+        "calculation",
+        "integrated"
+      ],
+      "examEvidence": {
+        "level": "emphasis",
+        "note": "纪要条件式地提到最短路径综合题；此处区分单源与多源算法和各自前提。"
+      },
+      "summary": "Dijkstra求非负权图单源最短路径：每轮从未确定顶点选当前dist最小者，再松弛其出边；负边可能让已确定距离再次变小，破坏贪心正确性。Floyd求任意两点最短路，依次将顶点k作为可选中间点，检查dist[i][k]+dist[k][j]是否改进dist[i][j]。无边初始化为∞，dist[i][i]=0。若需要输出具体路径，需另存前驱或next矩阵；仅有距离矩阵不够恢复路线。实现时保护无穷值，避免把∞参与加法后产生伪更新。",
+      "concepts": [
+        {
+          "term": "松弛",
+          "definition": "用经由一个顶点的新路径长度改进已有距离。"
+        },
+        {
+          "term": "Dijkstra",
+          "definition": "非负权图上的单源贪心最短路。"
+        },
+        {
+          "term": "Floyd",
+          "definition": "逐步增加可作中间点的顶点集合。"
+        }
+      ],
+      "steps": [
+        "写明起点或初始化全部点对距离。",
+        "Dijkstra选择未确定的最小dist并松弛出边。",
+        "Floyd按k、i、j三层循环更新。",
+        "更新路径时同步维护前驱信息。"
+      ],
+      "formulas": [
+        {
+          "label": "Floyd更新",
+          "expression": "dij=min(dij,dik+dkj)",
+          "condition": "允许k作为中间顶点"
+        },
+        {
+          "label": "Dijkstra前提",
+          "expression": "w(e)≥0",
+          "condition": "标准贪心版本"
+        }
+      ],
+      "pitfalls": [
+        "负边权不能直接使用标准Dijkstra。",
+        "距离矩阵无边记∞、对角为0。",
+        "恢复路径需额外保存中间点/前驱信息。"
+      ],
+      "example": {
+        "title": "松弛一条边",
+        "problem": "当前dist(A)=0、dist(B)=4、dist(C)=10，且B→C权为3。确定B后更新dist(C)。",
+        "steps": [
+          "经B候选距离为4+3=7。",
+          "与当前10比较，取较小值。"
+        ],
+        "answer": "dist(C)更新为7。",
+        "origin": "original",
+        "sourceNote": "依据所列教材章节概念与约定重新设计的自编例题。"
+      },
+      "code": null,
+      "source": {
+        "section": "6.6.2 最短路径",
+        "printedPages": [
+          205,
+          211
+        ],
+        "pdfPages": [
+          217,
+          223
+        ],
+        "verified": "text"
+      },
+      "related": []
+    }
+  ],
+  "questions": [
+    {
+      "id": "ch06-q01",
+      "type": "choice",
+      "topicId": "ch06-graph-model",
+      "prompt": "n个顶点的无向简单图邻接矩阵满足哪项？",
+      "answer": 0,
+      "explanation": "无向边没有方向，因此A[i][j]=A[j][i]。",
+      "steps": [
+        "无向邻接关系对称。",
+        "互换端点仍是同一条边。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "关于主对角线对称",
+        "关于副对角线对称",
+        "一定是上三角矩阵",
+        "所有元素相同"
+      ]
+    },
+    {
+      "id": "ch06-q02",
+      "type": "fill",
+      "topicId": "ch06-graph-model",
+      "prompt": "无向图一条边在邻接表中通常记录___1___次；邻接矩阵空间为___2___。",
+      "answer": "两次；O(n²)。",
+      "explanation": "边的两个端点各记录一次；n×n矩阵空间为平方级。",
+      "steps": [
+        "分别看两个端点的链表。",
+        "计算n乘n矩阵单元。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "code": "无向边记录___1___次\n邻接矩阵空间___2___",
+      "blanks": [
+        {
+          "answer": "两",
+          "alternatives": [
+            "2",
+            "两次",
+            "2次"
+          ],
+          "hint": "两个端点各有一个邻接表。"
+        },
+        {
+          "answer": "O(n²)",
+          "alternatives": [
+            "O(n^2)",
+            "O(n2)",
+            "n²"
+          ],
+          "hint": "矩阵有n行n列。"
+        }
+      ]
+    },
+    {
+      "id": "ch06-q03",
+      "type": "choice",
+      "topicId": "ch06-traversal",
+      "prompt": "BFS通常使用哪种结构控制先发现先访问？",
+      "answer": 2,
+      "explanation": "BFS按发现顺序处理顶点，使用FIFO队列。",
+      "steps": [
+        "识别逐层访问需要FIFO。",
+        "先进先出对应队列。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "递归栈",
+        "最大堆",
+        "队列",
+        "优先搜索树"
+      ]
+    },
+    {
+      "id": "ch06-q04",
+      "type": "calculation",
+      "topicId": "ch06-traversal",
+      "prompt": "A邻接B,C；B邻接A,D；C邻接A,D；D邻接B,C。邻点按字母序，从A进行BFS，写序列。",
+      "answer": "A、B、C、D。",
+      "explanation": "A出队发现B、C；B发现D；后续不重复加入D。",
+      "steps": [
+        "将A标记入队。",
+        "处理A并依序入队B、C。",
+        "处理B发现D，随后处理C和D。"
+      ],
+      "points": 4,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch06-q05",
+      "type": "coding",
+      "topicId": "ch06-traversal",
+      "prompt": "写出图的BFS核心过程，并说明何时标记visited。",
+      "answer": "用队列；发现邻点时立即标记再入队。",
+      "explanation": "发现即标记可防止多条边将同一点重复加入队列。",
+      "steps": [
+        "标记并入队起点。",
+        "出队顶点并扫描邻点。",
+        "未访问邻点先标记再入队。"
+      ],
+      "points": 4,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "code": "BFS(G, s):\n  visited[*] = false\n  visited[s] = true; enqueue(s)\n  while queue not empty:\n    v = dequeue()\n    for each w in Adj[v]:\n      if not visited[w]:\n        visited[w] = true\n        enqueue(w)"
+    },
+    {
+      "id": "ch06-q06",
+      "type": "choice",
+      "topicId": "ch06-mst",
+      "prompt": "Kruskal接纳一条边的条件是什么？",
+      "answer": 1,
+      "explanation": "仅接纳连接不同连通分量且不成环的边。",
+      "steps": [
+        "比较两个端点的分量代表元。",
+        "同分量边会构成回路，应跳过。"
+      ],
+      "points": 2,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "它是最大权边",
+        "它连接不同分量且不成环",
+        "两个端点都已连通",
+        "它与当前树根相连"
+      ]
+    },
+    {
+      "id": "ch06-q07",
+      "type": "calculation",
+      "topicId": "ch06-mst",
+      "prompt": "无向边AB=1、BC=2、CD=3、AC=4、BD=5，求MST总权。",
+      "answer": "6。",
+      "explanation": "Kruskal依序接纳AB、BC、CD，已有3条边连接4个顶点。",
+      "steps": [
+        "按权排序边。",
+        "前三条均不成环。",
+        "总权1+2+3=6。"
+      ],
+      "points": 4,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch06-q08",
+      "type": "integrated",
+      "topicId": "ch06-mst",
+      "prompt": "对边AB=1、BC=2、CD=3、AC=4、BD=5，写出Kruskal与从A开始的Prim的MST和总权；说明并列边口径。",
+      "answer": "两者均选{AB,BC,CD}，总权6。若并列，按题给次序，否则接受任何总权最小的合法树。",
+      "explanation": "Kruskal全局依权选边；Prim每轮扩展A所在树，均依次连接新顶点。",
+      "steps": [
+        "依规则逐步选边。",
+        "检查边数为3且覆盖四点。",
+        "相加得到6。",
+        "说明并列边可产生等价最优解。"
+      ],
+      "points": 10,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch06-q09",
+      "type": "choice",
+      "topicId": "ch06-shortest-path",
+      "prompt": "标准Dijkstra适用条件是哪项？",
+      "answer": 0,
+      "explanation": "标准算法要求所有边权非负。",
+      "steps": [
+        "算法一旦确定当前最小点就不会回退。",
+        "负边可能改小已确定距离。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "边权非负",
+        "图必为无向图",
+        "所有边权互异",
+        "图必为树"
+      ]
+    },
+    {
+      "id": "ch06-q10",
+      "type": "calculation",
+      "topicId": "ch06-shortest-path",
+      "prompt": "当前dist(B)=4、dist(C)=10，边B→C权为3。经B松弛后dist(C)是多少？",
+      "answer": "7。",
+      "explanation": "min(10,4+3)=7。",
+      "steps": [
+        "计算候选4+3。",
+        "与现值10取小。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch06-q11",
+      "type": "fill",
+      "fillKind": "program",
+      "topicId": "ch06-shortest-path",
+      "prompt": "Floyd允许k作中间点时，更新为d[i][j]=min(d[i][j],___1___+___2___)。",
+      "answer": "d[i][k]+d[k][j]。",
+      "explanation": "经由k的路径由i到k和k到j两段组成。",
+      "steps": [
+        "写出第一段。",
+        "写出第二段。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "code": "d[i][j] = min(d[i][j], ___1___ + ___2___)",
+      "blanks": [
+        {
+          "answer": "d[i][k]",
+          "alternatives": [
+            "d[i][k]"
+          ],
+          "hint": "从i到中间顶点k。"
+        },
+        {
+          "answer": "d[k][j]",
+          "alternatives": [
+            "d[k][j]"
+          ],
+          "hint": "从中间顶点k到j。"
+        }
+      ]
+    },
+    {
+      "id": "ch06-q12",
+      "type": "integrated",
+      "topicId": "ch06-shortest-path",
+      "prompt": "有向边A→B=4、A→C=10、B→C=3。求从A出发的Dijkstra最终距离，并说明适用条件。",
+      "answer": "dist(A)=0、dist(B)=4、dist(C)=7；边权均非负，满足Dijkstra条件。",
+      "explanation": "确定A后得到B=4、C=10；确定B后将C松弛为7。",
+      "steps": [
+        "初始化起点距离0，其余∞。",
+        "扫描A的出边。",
+        "确定B并松弛B→C。",
+        "检查边权非负。"
+      ],
+      "points": 10,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    }
+  ]
+}

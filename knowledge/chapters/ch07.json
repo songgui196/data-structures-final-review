@@ -1,0 +1,587 @@
+{
+  "id": "ch07",
+  "number": 7,
+  "title": "查找",
+  "summary": "以有序顺序表折半查找为核心训练区间更新、比较次数与代码边界，再连接二叉排序树构造和散列表冲突处理。折半查找不能直接用于无序表或不支持随机访问的普通链表；平衡树、B树与散列作基础辨析。",
+  "examFocus": [
+    "纪要明确提到折半查找填空训练，并涉及按序列构造二叉排序树。",
+    "折半查找维护目标可能出现的闭区间；统一使用low<=high与mid=(low+high)/2。",
+    "平衡树、B树和散列作为本章背景复习，不声称未点名内容不考。"
+  ],
+  "topics": [
+    {
+      "id": "ch07-basic-search",
+      "title": "顺序、折半与分块查找",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "fill",
+        "calculation",
+        "coding",
+        "integrated"
+      ],
+      "examEvidence": {
+        "level": "explicit",
+        "note": "考试纪要明确强调折半查找填空与实现；顺序、分块查找保留比较背景。"
+      },
+      "summary": "顺序查找逐项比较，适用于无序表，最坏O(n)。折半查找要求表有序且支持随机访问；在闭区间[low,high]内比较mid。若A[mid]<key，则low=mid+1；若更大，high=mid−1；若相等则命中。每轮区间约缩小一半，时间O(log n)。分块查找块间索引有序、块内再顺序查找，折中动态更新与搜索速度。重复值题须规定返回任一匹配位置还是左右边界；代码要防溢出式中点计算与越界。",
+      "concepts": [
+        {
+          "term": "折半前提",
+          "definition": "关键字有序且可随机访问。"
+        },
+        {
+          "term": "闭区间更新",
+          "definition": "目标较大时low=mid+1；较小时high=mid−1。"
+        },
+        {
+          "term": "分块查找",
+          "definition": "先查索引确定块，再在块内顺序查找。"
+        }
+      ],
+      "steps": [
+        "初始化闭区间[0,n−1]。",
+        "计算中点并比较。",
+        "保留包含目标的半区且排除已比较中点。",
+        "区间空时报告失败。"
+      ],
+      "formulas": [
+        {
+          "label": "折半查找",
+          "expression": "O(log n)",
+          "condition": "有序随机访问表"
+        },
+        {
+          "label": "顺序查找最坏",
+          "expression": "O(n)",
+          "condition": "任意线性表"
+        }
+      ],
+      "pitfalls": [
+        "未排序表不满足折半查找前提。",
+        "链表按序但无法高效随机访问中点。",
+        "mid命中重复值时不一定是第一个出现的位置。"
+      ],
+      "example": {
+        "title": "闭区间折半查找",
+        "problem": "在[3,8,12,17,25,31,42]中查找17，使用0起始下标。",
+        "steps": [
+          "low=0,high=6。",
+          "mid=3，A[3]=17。"
+        ],
+        "answer": "比较一次，在下标3命中。",
+        "origin": "original",
+        "sourceNote": "依据所列教材章节概念与约定重新设计的自编例题。"
+      },
+      "code": {
+        "language": "textbook-c",
+        "label": "重构类C示例：0-based 闭区间折半查找",
+        "text": "int BinarySearch(int A[], int n, int key) {\n    int low = 0, high = n - 1;\n    while (low <= high) {\n        int mid = low + (high - low) / 2;\n        if (A[mid] == key) return mid;\n        if (A[mid] < key) low = mid + 1;\n        else high = mid - 1;\n    }\n    return -1;\n}",
+        "notes": [
+          "A为升序数组，n为元素数，返回一个匹配下标或-1。",
+          "中点使用low+(high-low)/2降低加法溢出风险。"
+        ]
+      },
+      "source": {
+        "section": "7.2.1–7.2.3 顺序、折半与分块查找",
+        "printedPages": [
+          231,
+          237
+        ],
+        "pdfPages": [
+          243,
+          249
+        ],
+        "verified": "text"
+      },
+      "related": []
+    },
+    {
+      "id": "ch07-bst",
+      "title": "二叉排序树查找与构造",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "fill",
+        "calculation",
+        "coding"
+      ],
+      "examEvidence": {
+        "level": "emphasis",
+        "note": "纪要提到按输入序列构造二叉排序树；重复关键字须由题目另行规定。"
+      },
+      "summary": "二叉排序树满足左子树关键字小于根，右子树关键字大于根，且左右子树也满足该性质。查找按比较方向逐层下降；插入新关键字时走同一路径至空链接并建立新叶。中序遍历得到递增序列。树的形状受插入顺序影响，接近平衡时查找O(log n)，单支树最坏O(n)。若有重复值，需预先定义计数或放置方向；本库建树题使用互异关键字。构造过程应逐个展示比较路径，而非只画最终树。",
+      "concepts": [
+        {
+          "term": "BST序",
+          "definition": "左子树<根<右子树。"
+        },
+        {
+          "term": "构造",
+          "definition": "依输入次序逐个比较至空孩子链接并插入。"
+        },
+        {
+          "term": "中序性质",
+          "definition": "互异键BST的中序遍历为严格递增序列。"
+        }
+      ],
+      "steps": [
+        "首个关键字建立根。",
+        "逐个与当前结点比较。",
+        "较小向左、较大向右直到空链接。",
+        "按中序核验全局顺序。"
+      ],
+      "formulas": [
+        {
+          "label": "平衡时查找",
+          "expression": "O(log n)",
+          "condition": "树高对数级"
+        },
+        {
+          "label": "最坏查找",
+          "expression": "O(n)",
+          "condition": "单支退化树"
+        }
+      ],
+      "pitfalls": [
+        "不能只检查直接孩子，要满足左右子树全局范围。",
+        "递增插入可形成向右单支树。",
+        "重复关键字的归属必须有约定。"
+      ],
+      "example": {
+        "title": "按序列建BST",
+        "problem": "按8、3、10、1、6插入，求树结构和中序序列。",
+        "steps": [
+          "8为根。",
+          "3左、10右。",
+          "1沿8左、再沿3左；6沿8左、再沿3右。"
+        ],
+        "answer": "根8，左子3（孩子1、6），右子10；中序1、3、6、8、10。",
+        "origin": "original",
+        "sourceNote": "依据所列教材章节概念与约定重新设计的自编例题。"
+      },
+      "code": {
+        "language": "textbook-c",
+        "label": "重构类C示例：BST查找",
+        "text": "while (p != NULL && p->key != key) {\n    if (key < p->key) p = p->lchild;\n    else p = p->rchild;\n}\nreturn p;",
+        "notes": [
+          "假定互异关键字并按左小右大定义。",
+          "p为空表示查找失败；非空表示命中。"
+        ]
+      },
+      "source": {
+        "section": "7.3.1 二叉排序树",
+        "printedPages": [
+          237,
+          241
+        ],
+        "pdfPages": [
+          249,
+          253
+        ],
+        "verified": "text"
+      },
+      "related": []
+    },
+    {
+      "id": "ch07-hash",
+      "title": "散列表与冲突处理",
+      "priority": "foundation",
+      "examTypes": [
+        "choice",
+        "fill",
+        "calculation"
+      ],
+      "examEvidence": {
+        "level": "suggestion",
+        "note": "散列查找作为章节必要背景与选择题训练，不承诺题型或分值。"
+      },
+      "summary": "散列函数将关键字映射到有限表地址，不同关键字可能映射到同一位置，称为冲突。开放定址在表内探测后继位置；链地址法在一个地址维护冲突链。线性探测从初始地址依次检查并按表长循环。装填因子α=n/m表示记录数与表长比，开放定址中装填越高，冲突通常越多。查找遇空槽判失败的前提是插入和删除正确维护空、占用、删除标记状态。作表时应同时写初始散列地址与探测后最终落点。",
+      "concepts": [
+        {
+          "term": "冲突",
+          "definition": "两个不同关键字计算到相同地址。"
+        },
+        {
+          "term": "线性探测",
+          "definition": "冲突后依序检查下一个槽位并循环回表头。"
+        },
+        {
+          "term": "装填因子",
+          "definition": "α=n/m。"
+        }
+      ],
+      "steps": [
+        "逐个计算H(key)。",
+        "若已占用，按指定探测策略继续。",
+        "记录最终落点并更新占用状态。"
+      ],
+      "formulas": [
+        {
+          "label": "装填因子",
+          "expression": "α=n/m",
+          "condition": "n个记录、表长m"
+        }
+      ],
+      "pitfalls": [
+        "把冲突与关键字相同混为一谈。",
+        "线性探测需按表长循环取余。",
+        "删除不能简单清空槽位而破坏后续探测链。"
+      ],
+      "example": {
+        "title": "线性探测",
+        "problem": "表长11，H(k)=k mod 11，插入22、33、44。",
+        "steps": [
+          "三个关键字初始地址均为0。",
+          "22放0，33探测放1，44再探测放2。"
+        ],
+        "answer": "最终下标依次为0、1、2。",
+        "origin": "original",
+        "sourceNote": "依据所列教材章节概念与约定重新设计的自编例题。"
+      },
+      "code": null,
+      "source": {
+        "section": "7.4 散列查找",
+        "printedPages": [
+          269,
+          276
+        ],
+        "pdfPages": [
+          281,
+          288
+        ],
+        "verified": "text"
+      },
+      "related": []
+    },
+    {
+      "id": "ch07-advanced-search",
+      "title": "平衡树与多路查找概览",
+      "priority": "overview",
+      "examTypes": [
+        "choice",
+        "calculation"
+      ],
+      "examEvidence": {
+        "level": "suggestion",
+        "note": "平衡树、B树作为知识背景和客观题复习，不声称未点名内容不考。"
+      },
+      "summary": "平衡二叉树在二叉排序树基础上限制子树高度差，并通过旋转保持对数高度；红黑树用颜色约束实现较宽松平衡。B树每个结点可含多个关键字和多棵子树，适合外存多路索引、降低磁盘访问次数。不同查找结构通过额外的存储或维护代价换取较稳定的查找路径。答辨析题时分清每种结构的组织方式与适用场景，不将二叉排序树平均性能和最坏性能混为一谈。",
+      "concepts": [
+        {
+          "term": "平衡二叉树",
+          "definition": "通过旋转限制左右子树高度差。"
+        },
+        {
+          "term": "B树",
+          "definition": "结点含多个关键字和多路子树的平衡查找树。"
+        }
+      ],
+      "steps": [
+        "确定查找结构与存储层次。",
+        "说明该结构维护的平衡或排序性质。",
+        "据树高或磁盘访问分析性能。"
+      ],
+      "formulas": [],
+      "pitfalls": [
+        "普通BST不自动保证平衡。",
+        "B树结点的多路结构与二叉树不同。",
+        "性能结论需注明最好、平均或最坏情形。"
+      ],
+      "example": {
+        "title": "选择查找结构",
+        "problem": "数据存于外存且每次磁盘I/O代价高，需减少访问层数，可优先考虑何种树型索引？",
+        "steps": [
+          "目标是减少外存访问层数。",
+          "采用较高分支度的平衡多路查找树。"
+        ],
+        "answer": "可考虑B树类多路索引。",
+        "origin": "original",
+        "sourceNote": "依据所列教材章节概念与约定重新设计的自编例题。"
+      },
+      "code": null,
+      "source": {
+        "section": "7.3.2 平衡二叉树；7.3.3 红黑树；7.3.4 B-树",
+        "printedPages": [
+          244,
+          267
+        ],
+        "pdfPages": [
+          256,
+          279
+        ],
+        "verified": "text"
+      },
+      "related": []
+    }
+  ],
+  "questions": [
+    {
+      "id": "ch07-q01",
+      "type": "choice",
+      "topicId": "ch07-basic-search",
+      "prompt": "折半查找最完整的适用条件是？",
+      "answer": 3,
+      "explanation": "表应有序并支持按下标随机访问。",
+      "steps": [
+        "每轮必须定位中间元素，并依有序性排除半区。",
+        "普通链表无法以常数时间取得中间元素。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "无序链表",
+        "有序链表即可",
+        "任意顺序表",
+        "有序且可随机访问的顺序表"
+      ]
+    },
+    {
+      "id": "ch07-q02",
+      "type": "fill",
+      "fillKind": "program",
+      "topicId": "ch07-basic-search",
+      "prompt": "闭区间折半查找中，若A[mid]<key则下界变为___1___；若A[mid]>key则上界变为___2___。",
+      "answer": "low=mid+1；high=mid−1。",
+      "explanation": "舍弃已经比较的mid及不可能区间。",
+      "steps": [
+        "目标大则保留mid右侧。",
+        "目标小则保留mid左侧。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "code": "A[mid]<key: ___1___\nA[mid]>key: ___2___",
+      "blanks": [
+        {
+          "answer": "low=mid+1",
+          "alternatives": [
+            "low = mid + 1",
+            "mid+1"
+          ],
+          "hint": "保留右半边。"
+        },
+        {
+          "answer": "high=mid−1",
+          "alternatives": [
+            "high=mid-1",
+            "high = mid - 1",
+            "mid−1",
+            "mid-1"
+          ],
+          "hint": "保留左半边。"
+        }
+      ]
+    },
+    {
+      "id": "ch07-q03",
+      "type": "calculation",
+      "topicId": "ch07-basic-search",
+      "prompt": "升序表[3,8,12,17,25,31,42]查找17，0起始下标，比较哪些位置？",
+      "answer": "下标3处比较到17，一次命中。",
+      "explanation": "区间[0,6]中点为3。",
+      "steps": [
+        "low=0,high=6。",
+        "mid=3，A[3]=17。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch07-q04",
+      "type": "coding",
+      "topicId": "ch07-basic-search",
+      "prompt": "写出未命中返回-1的闭区间迭代折半查找。",
+      "answer": "循环条件low<=high；右移low=mid+1，左移high=mid−1。",
+      "explanation": "每轮必须缩小区间并排除已比过的mid。",
+      "steps": [
+        "初始化闭区间。",
+        "比较中点。",
+        "命中返回，未命中缩小区间。",
+        "区间空返回-1。"
+      ],
+      "points": 4,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "code": "int BinarySearch(int A[], int n, int key) {\n    int low = 0, high = n - 1;\n    while (low <= high) {\n        int mid = low + (high - low) / 2;\n        if (A[mid] == key) return mid;\n        if (A[mid] < key) low = mid + 1;\n        else high = mid - 1;\n    }\n    return -1;\n}"
+    },
+    {
+      "id": "ch07-q05",
+      "type": "choice",
+      "topicId": "ch07-bst",
+      "prompt": "互异关键字的BST中序遍历结果是什么顺序？",
+      "answer": 1,
+      "explanation": "左—根—右访问和左小右大性质共同保证递增。",
+      "steps": [
+        "先输出较小左子树，再根后右子树。",
+        "结果严格递增。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "递减",
+        "递增",
+        "层序",
+        "插入序列"
+      ]
+    },
+    {
+      "id": "ch07-q06",
+      "type": "calculation",
+      "topicId": "ch07-bst",
+      "prompt": "依次插入8、3、10、1、6，求树结构与中序。",
+      "answer": "根8；左子3（左右为1、6），右子10；中序1、3、6、8、10。",
+      "explanation": "每个新键沿BST比较路径插入空链接。",
+      "steps": [
+        "8作根。",
+        "3、10分置两侧。",
+        "1、6落在3的左右子树。",
+        "中序输出有序序列。"
+      ],
+      "points": 4,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch07-q07",
+      "type": "fill",
+      "topicId": "ch07-bst",
+      "prompt": "若key小于当前BST结点，则沿___1___子树；查找失败或插入终点为___2___链接。",
+      "answer": "左；空。",
+      "explanation": "BST左小右大，沿比较路径直到空孩子链接。",
+      "steps": [
+        "按关键字大小选左侧。",
+        "检查到空指针即终止。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "code": "key 较小时沿___1___子树\n终点为___2___链接",
+      "blanks": [
+        {
+          "answer": "左",
+          "alternatives": [
+            "左子树"
+          ],
+          "hint": "左侧关键字较小。"
+        },
+        {
+          "answer": "空",
+          "alternatives": [
+            "空指针",
+            "NULL",
+            "null"
+          ],
+          "hint": "查找失败时指针到达哪里？"
+        }
+      ]
+    },
+    {
+      "id": "ch07-q08",
+      "type": "coding",
+      "topicId": "ch07-bst",
+      "prompt": "描述互异关键字二叉排序树查找循环。",
+      "answer": "从根开始，等于则返回；小于转左，大于转右，空则失败。",
+      "explanation": "每次比较排除一个方向。",
+      "steps": [
+        "令p为根。",
+        "沿大小关系更新p。",
+        "命中返回p，空时返回失败。"
+      ],
+      "points": 4,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "code": "while (p != NULL && p->key != key) {\n    if (key < p->key) p = p->lchild;\n    else p = p->rchild;\n}\nreturn p;"
+    },
+    {
+      "id": "ch07-q09",
+      "type": "choice",
+      "topicId": "ch07-hash",
+      "prompt": "不同关键字散列到同一表地址称为什么？",
+      "answer": 0,
+      "explanation": "同一地址被多个关键字映射即冲突。",
+      "steps": [
+        "比较散列函数输出地址。",
+        "地址相同时需要冲突处理。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "冲突",
+        "装填因子",
+        "树高",
+        "旋转"
+      ]
+    },
+    {
+      "id": "ch07-q10",
+      "type": "calculation",
+      "topicId": "ch07-hash",
+      "prompt": "表长11，H(k)=k mod11，线性探测插入22、33、44，最终位置？",
+      "answer": "0、1、2。",
+      "explanation": "初始地址都0，后两个依次探测到下一个空槽。",
+      "steps": [
+        "22占0。",
+        "33探测后占1。",
+        "44探测后占2。"
+      ],
+      "points": 4,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch07-q11",
+      "type": "choice",
+      "topicId": "ch07-advanced-search",
+      "prompt": "将互异关键字严格递增地逐个插入未平衡BST，树可能退化成？",
+      "answer": 2,
+      "explanation": "每次均沿右子树插入，得到单支结构。",
+      "steps": [
+        "递增关键字均大于已有关键字。",
+        "因此一路向右形成链。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "完全二叉树",
+        "满二叉树",
+        "单支树",
+        "无序树"
+      ]
+    },
+    {
+      "id": "ch07-q12",
+      "type": "integrated",
+      "topicId": "ch07-basic-search",
+      "prompt": "在升序表[2,5,9,12,18,23,31,40]中查找23，用0起始闭区间，列出每轮low、high、mid和值。",
+      "answer": "(0,7,3,12)，随后(4,7,5,23)，命中。",
+      "explanation": "中点3的值12小于23，下一轮区间为[4,7]，中点5命中。",
+      "steps": [
+        "初始化[0,7]。",
+        "计算mid=3并比较12。",
+        "令low=4。",
+        "下一轮mid=5，命中23。"
+      ],
+      "points": 10,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    }
+  ]
+}

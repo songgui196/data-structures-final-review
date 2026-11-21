@@ -1,0 +1,743 @@
+{
+  "id": "ch03",
+  "number": 3,
+  "title": "栈和队列",
+  "summary": "围绕LIFO/FIFO、操作序列、指针式顺序栈及预留空位循环队列展开，补充无头结点链栈和带头结点链队。严格区分top/base与front/rear的表示含义。递归、括号匹配和其他教材应用未单列专项，不据此认定不考。",
+  "examFocus": [
+    "纪要明确强调后进先出、先进先出，以及基本入栈出栈、入队出队操作。",
+    "循环队列按教材预留一个空位方案：front==rear为空，(rear+1)%M==front为满。",
+    "顺序栈按教材top指下一空位，top==base为空；链式实现作为补充训练，实际编程题位置尚未确定。",
+    "程序填空共3题，空数为3、3、2，每空2分，保留完整前提和解答，供主程序跨题选取10空。"
+  ],
+  "topics": [
+    {
+      "id": "ch03-stack-sequences",
+      "title": "栈与队列的逻辑规则及操作序列",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "calculation"
+      ],
+      "examEvidence": {
+        "level": "explicit",
+        "note": "范围依据第三章明确强调后进先出、先进先出以及入栈出栈、入队出队；用教材核定具体表示，不将训练类型当作命题保证。"
+      },
+      "summary": "栈与队列都是操作位置受到限制的线性表。栈只在同一端进行插入和删除，后进入且尚未删除的元素先出，称为LIFO；队列在队尾插入、队头删除，先进入且尚未删除的元素先出，称为FIFO。操作序列题应逐步模拟当前状态，不能只把全部输入简单逆序或原序抄成输出，因为入和出可以交错。题目还必须约定空时删除、满时插入如何处理；未说明容量时不要自行添加溢出限制。",
+      "concepts": [
+        {
+          "term": "栈的合法输出",
+          "definition": "固定输入次序时，可以在任意允许的时刻出栈，但只能取当前栈顶。判断目标输出时，为输出一个尚未入栈的元素，可依次压入到它；若目标已经被别的未弹元素压住，就不能直接取出。"
+        },
+        {
+          "term": "队列的保序性质",
+          "definition": "只用普通队尾入、队头出且不丢失元素时，成功出队的元素次序保持成功入队的相对次序；这与队列采用数组还是链表无关。"
+        },
+        {
+          "term": "表示与规则分层",
+          "definition": "LIFO和FIFO是逻辑规则；空判定、指针名称及容量限制属于具体表示。指针重合的含义必须先看顺序栈、循环队列或带头结点链队的定义。"
+        }
+      ],
+      "steps": [
+        "先写明初态、栈底到栈顶或队头到队尾的记录方向，以及失败操作的约定。",
+        "每次插入先检查容量，再加入对应一端；每次删除先检查是否为空。",
+        "把每次成功删除的值立即记入输出序列，失败则保持题定状态。",
+        "最终分别给出输出、剩余内容和是否发生非法请求，不能只报最后一个值。"
+      ],
+      "formulas": [],
+      "pitfalls": [
+        "栈的整个输出不一定是输入的完全逆序，交错出栈可形成多种合法输出。",
+        "普通队列不能跳过队头取出后面的元素；取队头与删除队头也不是同一操作。",
+        "对顺序栈应说栈顶与栈底，不能把top、base称作队列头尾指针。"
+      ],
+      "example": {
+        "title": "同一操作节奏比较LIFO与FIFO",
+        "problem": "容量足够，初态为空。依次加入6、加入2、移出一次、加入9、移出两次。分别按栈和队列规则求输出与最终状态。",
+        "steps": [
+          "栈：加入6、2后栈底到顶为(6,2)，第一次移出2，余(6)。",
+          "再入9成为(6,9)，后两次依次移出9、6。",
+          "队列：加入6、2后队头到尾为(6,2)，第一次移出6，余(2)。",
+          "再入9成为(2,9)，后两次依次移出2、9；两者最终都为空。"
+        ],
+        "answer": "栈输出(2,9,6)，队列输出(6,2,9)，最终均为空，全部操作合法。",
+        "origin": "original",
+        "sourceNote": "自编完整操作序列，依据3.1.1—3.1.2定义；印刷62—63页，PDF74—75页。"
+      },
+      "code": null,
+      "source": {
+        "section": "3.1.1 栈的定义和特点；3.1.2 队列的定义和特点",
+        "printedPages": [
+          62,
+          63
+        ],
+        "pdfPages": [
+          74,
+          75
+        ],
+        "verified": "text"
+      },
+      "related": [
+        "ch03-sequential-stack",
+        "ch03-circular-queue",
+        "ch03-linked-stack",
+        "ch03-linked-queue"
+      ]
+    },
+    {
+      "id": "ch03-sequential-stack",
+      "title": "顺序栈的base、top与基本操作",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "fill",
+        "coding"
+      ],
+      "examEvidence": {
+        "level": "explicit",
+        "note": "范围依据第三章明确强调后进先出、先进先出以及入栈出栈、入队出队；用教材核定具体表示，不将训练类型当作命题保证。"
+      },
+      "summary": "采用教材的指针式顺序栈，base指向已分配存储区的栈底，top始终指向下一处可压入位置。初始化后top=base；非空时真正的栈顶元素位于top−1。因而空栈条件是top==base，而不是取top指向的元素判断。压入时先写*top再递增top；弹出时先递减top再读值。base为NULL表示尚无有效栈存储，不能据此直接作已初始化空栈的指针差运算。",
+      "concepts": [
+        {
+          "term": "长度与容量",
+          "definition": "在同一已分配数组范围内，top−base表示元素个数，单位是元素而非字节。容量为stacksize时，可使用全部stacksize个单元，不需要像本章循环队列那样额外预留一个空位。"
+        },
+        {
+          "term": "压入与弹出",
+          "definition": "满时压入失败且不写数组；空时弹出失败且不读栈顶。成功压入可写*top++=e，成功弹出可写e=*--top，但须分清后置与前置的时机。"
+        },
+        {
+          "term": "只读栈顶",
+          "definition": "取栈顶访问*(top−1)，不改变top；弹出会改变top。输出参数必须指向可写且不与栈内部冲突的对象，失败路径不应产生伪结果。"
+        }
+      ],
+      "steps": [
+        "确认栈已初始化，base与top属于同一有效分配区，且容量已知。",
+        "压入先判top−base==stacksize，再写当前top并递增。",
+        "弹出先判top==base，再把top前移一个元素并读取。",
+        "取顶只读top−1，不移动指针；每一步用top−base检查当前长度。"
+      ],
+      "formulas": [
+        {
+          "label": "空栈",
+          "expression": "S.top==S.base",
+          "condition": "有效初始化的教材指针式顺序栈。"
+        },
+        {
+          "label": "长度与满栈",
+          "expression": "len=S.top−S.base；len==S.stacksize时满",
+          "condition": "指针位于同一栈数组内或其尾后一位。"
+        }
+      ],
+      "pitfalls": [
+        "top是下一空位，直接读*top并不是取栈顶，满栈时还会越界。",
+        "*top--先取旧top再减，与正确的*--top不等价。",
+        "这里没有front或rear；不同实现用top=-1判空也可能正确，但不适用于本表示。"
+      ],
+      "example": {
+        "title": "容量边界下的压入与弹出",
+        "problem": "容量3，初态top=base。依次Push(10)、Push(20)、Pop、Push(30)、Push(40)、Push(50)、Pop，求两次弹出值及最终状态，失败压入保持栈不变。",
+        "steps": [
+          "压入10、20后长度2，首次Pop先减top，得到20，余(10)。",
+          "再入30、40后长度3，栈底到顶(10,30,40)，top=base+3。",
+          "入50时已满，失败且长度仍为3。",
+          "末次Pop得到40，余(10,30)，top=base+2。"
+        ],
+        "answer": "弹出20、40；Push(50)失败；最终(10,30)，长度2。",
+        "origin": "original",
+        "sourceNote": "自编顺序栈边界例题，依据3.3.2算法3.1—3.4；印刷66—68页，PDF78—80页。"
+      },
+      "code": {
+        "language": "c",
+        "label": "重构类C示例（C指针接口，非教材源码逐字转写）",
+        "text": "typedef struct { int *base, *top; int stacksize; } SqStack;\n/* S已初始化，base/top同属一个有效分配区，容量为stacksize。 */\nint Push(SqStack *S, int e) {\n    if (!S) return 0;\n    if (S->top - S->base == S->stacksize) return 0;\n    *S->top++ = e;\n    return 1;\n}\nint Pop(SqStack *S, int *out) {\n    if (!S || !out || S->top == S->base) return 0;\n    *out = *--S->top;\n    return 1;\n}\nint Peek(const SqStack *S, int *out) {\n    if (!S || !out || S->top == S->base) return 0;\n    *out = *(S->top - 1);\n    return 1;\n}",
+        "notes": [
+          "结构与指针含义遵循教材；用C指针参数和int元素替代教材引用参数、SElemType。",
+          "前提：stacksize>0，base指向相应容量数组，base≤top≤base+stacksize；不允许损坏表示。",
+          "Pop与Peek的out为独立可写对象；代码为重构示例，未声称经本机编译运行。"
+        ]
+      },
+      "source": {
+        "section": "3.3.2 顺序栈的表示和实现，算法3.1—3.4",
+        "printedPages": [
+          66,
+          68
+        ],
+        "pdfPages": [
+          78,
+          80
+        ],
+        "verified": "text"
+      },
+      "related": [
+        "ch03-stack-sequences",
+        "ch03-linked-stack"
+      ]
+    },
+    {
+      "id": "ch03-circular-queue",
+      "title": "预留一个空位的循环队列",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "calculation",
+        "fill"
+      ],
+      "examEvidence": {
+        "level": "explicit",
+        "note": "范围依据明确强调循环队列判空，并纠正纪要的混淆；按教材3.5.2预留一个空位方案，不能混用计数器或标志位方案。"
+      },
+      "summary": "固定采用数组容量M、下标0至M−1、预留一个空位的循环队列，要求M≥2。front指向当前队头元素，rear指向下一次入队的写入位置；初态front=rear=0。入队成功后rear循环前进，出队成功后front循环前进。front==rear表示空；(rear+1)%M==front表示满，最多装M−1个元素。预留的是判别空间，不是永远禁用数组的最后一个下标，随着回绕任何位置都可能成为当前空位。",
+      "concepts": [
+        {
+          "term": "入队与出队顺序",
+          "definition": "入队先判满，再写data[rear]，最后更新rear；出队先判空，再保存data[front]，最后更新front。失败操作不改指针、不写输出，取队头则只读不移动front。"
+        },
+        {
+          "term": "回绕与逻辑顺序",
+          "definition": "rear数值小于front并不表示空；队列逻辑顺序应从front沿模M逐一枚举到rear之前。删除不会要求整体搬移数组，旧值残留也不算有效元素。"
+        },
+        {
+          "term": "方案的适用边界",
+          "definition": "若使用额外计数器或满空标志，可以设计装满M个元素的另一方案；那时相同指针位置可能需要辅助状态才能判满，不能直接套用本节结论。"
+        }
+      ],
+      "steps": [
+        "先写容量M、预留空位约定与初始front、rear，核对下标范围。",
+        "每次入队按满条件判断，成功时先存值再令rear=(rear+1)%M。",
+        "每次出队按空条件判断，成功时先取值再令front=(front+1)%M。",
+        "用(rear−front+M)%M核对长度，并从front逐个回绕列出有效元素。"
+      ],
+      "formulas": [
+        {
+          "label": "队空",
+          "expression": "Q.front==Q.rear",
+          "condition": "预留一个空位，front为队头位置，rear为下一写入位置。"
+        },
+        {
+          "label": "队满",
+          "expression": "(Q.rear+1)%M==Q.front",
+          "condition": "数组容量M≥2，最大有效长度M−1。"
+        },
+        {
+          "label": "队长",
+          "expression": "(Q.rear−Q.front+M)%M",
+          "condition": "0≤front,rear<M，采用本节空满约定。"
+        }
+      ],
+      "pitfalls": [
+        "rear==M−1不等于队满，必须计算rear循环下一位置是否追上front。",
+        "直接用rear−front可能为负，必须先加M再取模。",
+        "循环队列公式中的front、rear是数组下标；不能当作顺序栈top、base的指针差。"
+      ],
+      "example": {
+        "title": "跨数组尾部的连续操作",
+        "problem": "M=6，front=4，rear=1，初始data[4]=11、data[5]=22、data[0]=33。依次出队、入44、入55、入66、尝试入77，求输出与最终状态。",
+        "steps": [
+          "初始长度(1−4+6)%6=3，逻辑序列(11,22,33)。",
+          "出队得11，front由4变5，rear仍1。",
+          "入44、55、66分别写下标1、2、3，rear依次变2、3、4。",
+          "此时(rear+1)%6=5==front，入77失败且状态不变。",
+          "从front=5回绕到rear=4之前，得到(22,33,44,55,66)。"
+        ],
+        "answer": "出队值11；最终front=5、rear=4、长度5，队列(22,33,44,55,66)已满，77未入队。",
+        "origin": "original",
+        "sourceNote": "自编循环队列回绕例题，依据3.5.2文字与算法3.11—3.15，不据抽取图形猜队列布局；印刷78—81页，PDF90—93页。"
+      },
+      "code": {
+        "language": "c",
+        "label": "重构类C示例（C指针接口，非教材源码逐字转写）",
+        "text": "enum { M = 6 };\ntypedef struct { int data[M]; int front, rear; } SqQueue;\n/* 初始化front=rear=0；有效下标0..M-1，预留一个空位。 */\nint QueueLength(const SqQueue *Q) {\n    return (Q->rear - Q->front + M) % M;\n}\nint EnQueue(SqQueue *Q, int e) {\n    if (!Q || (Q->rear + 1) % M == Q->front) return 0;\n    Q->data[Q->rear] = e;\n    Q->rear = (Q->rear + 1) % M;\n    return 1;\n}\nint DeQueue(SqQueue *Q, int *out) {\n    if (!Q || !out || Q->front == Q->rear) return 0;\n    *out = Q->data[Q->front];\n    Q->front = (Q->front + 1) % M;\n    return 1;\n}",
+        "notes": [
+          "此例固定M=6，可推广至任意M≥2；数组是重构的固定存储，教材使用base指针。",
+          "调用前0≤front,rear<M且状态满足预留空位约定；QueueLength要求Q有效，出队out与队列存储不重叠。",
+          "空队不读data[front]；满队不写data[rear]；失败保持状态与输出不变。"
+        ]
+      },
+      "source": {
+        "section": "3.5.2 顺序队的表示和实现，算法3.11—3.15",
+        "printedPages": [
+          78,
+          81
+        ],
+        "pdfPages": [
+          90,
+          93
+        ],
+        "verified": "text"
+      },
+      "related": [
+        "ch03-stack-sequences",
+        "ch03-linked-queue"
+      ]
+    },
+    {
+      "id": "ch03-linked-stack",
+      "title": "无头结点链栈的压入与弹出",
+      "priority": "foundation",
+      "examTypes": [
+        "fill",
+        "coding"
+      ],
+      "examEvidence": {
+        "level": "suggestion",
+        "note": "纪要强调栈操作但未单独锁定链栈代码；链栈按教材作为实现补充与比较训练，不提升为明确命题。"
+      },
+      "summary": "这里采用教材不带头结点的链栈，栈顶指针S直接指向第一个数据结点。空栈用S==NULL表示，不能把带头结点单链表的L->next==NULL原样搬来。压入一个新结点时，先让它指向原S，再更新S；弹出时保存原栈顶结点及其后继，移动S后释放旧结点。两种操作都只在链首进行，不需要沿链查找尾部，逻辑上仍严格遵循后进先出。",
+      "concepts": [
+        {
+          "term": "表示与结点所有权",
+          "definition": "每个结点包含数据域与next，S拥有整条未弹出数据链的入口。一次成功压入新增一个结点，一次成功弹出释放一个结点，不能释放仍在链内的后继结点。"
+        },
+        {
+          "term": "动态空间边界",
+          "definition": "链栈没有预设数组容量，但申请内存仍可能失败，因此“链栈永不溢出”不严谨；失败压入应保持原S不变，不产生半接入结点。"
+        },
+        {
+          "term": "C接口含义",
+          "definition": "若在函数内修改调用者的栈顶变量，重构C接口使用LinkStack *S；*S才是实际栈顶。教材的引用参数写法与此等效表达修改意图，但语法不能混用。"
+        }
+      ],
+      "steps": [
+        "初始化实际栈顶变量为NULL，并将其地址交给需要改顶的函数。",
+        "压入先申请p，失败则返回；成功后写数据、p->next=*S、*S=p。",
+        "弹出先检查*S非空，保存p=*S及p->data，再令*S=p->next。",
+        "最后free(p)，保证不在释放后再读p->next；空栈失败不改输出。"
+      ],
+      "formulas": [
+        {
+          "label": "空链栈与操作代价",
+          "expression": "S==NULL；单次Push/Pop为O(1)",
+          "condition": "无头结点表示；不计内存分配器内部实现的变化成本。"
+        }
+      ],
+      "pitfalls": [
+        "S是栈顶指针时S==NULL判空；在C二级指针函数里应检查的是*S，不能混淆这两个层次。",
+        "free(p)之后再读取p->next属于使用已释放存储，应先更新栈顶。",
+        "同样叫单链结构，带头结点线性表与无头结点链栈的空状态不同。"
+      ],
+      "example": {
+        "title": "链栈由非空恢复为空",
+        "problem": "初始S=NULL，依次压入4、压入8、弹出、弹出、再弹出一次。最后一次弹出前输出变量out设为99，失败不改out。",
+        "steps": [
+          "入4后S指向4，4->next=NULL。",
+          "入8后链为8→4→NULL，栈顶是8。",
+          "首次弹出8并释放其结点，S改指向4；第二次弹出4并释放，S=NULL。",
+          "第三次检测到空栈，返回失败，不释放任何结点，out仍为99。"
+        ],
+        "answer": "两次成功输出8、4；最终S=NULL，第三次失败且out=99。",
+        "origin": "original",
+        "sourceNote": "自编链栈边界例题，依据3.3.3算法3.5—3.8；印刷68—69页，PDF80—81页。"
+      },
+      "code": {
+        "language": "c",
+        "label": "重构类C示例（C指针接口，非教材源码逐字转写）",
+        "text": "#include <stdlib.h>\ntypedef struct StackNode { int data; struct StackNode *next; } StackNode, *LinkStack;\nint LinkPush(LinkStack *S, int e) {\n    if (!S) return 0;\n    StackNode *p = malloc(sizeof *p);\n    if (!p) return 0;\n    p->data = e;\n    p->next = *S;\n    *S = p;\n    return 1;\n}\nint LinkPop(LinkStack *S, int *out) {\n    if (!S || !out || !*S) return 0;\n    StackNode *p = *S;\n    *out = p->data;\n    *S = p->next;\n    free(p);\n    return 1;\n}",
+        "notes": [
+          "代码含标准头文件，采用无头结点表示；调用者先声明LinkStack top=NULL。",
+          "LinkPush参数是&top；LinkPop的out为独立可写int对象，不与结点或top变量重叠。",
+          "压入失败不改top；调用者使用结束后须弹出并释放所有剩余结点。"
+        ]
+      },
+      "source": {
+        "section": "3.3.3 链栈的表示和实现，算法3.5—3.8",
+        "printedPages": [
+          68,
+          69
+        ],
+        "pdfPages": [
+          80,
+          81
+        ],
+        "verified": "text"
+      },
+      "related": [
+        "ch03-sequential-stack",
+        "ch03-linked-queue"
+      ]
+    },
+    {
+      "id": "ch03-linked-queue",
+      "title": "带头结点链队及最后一个元素的删除",
+      "priority": "foundation",
+      "examTypes": [
+        "choice",
+        "coding"
+      ],
+      "examEvidence": {
+        "level": "suggestion",
+        "note": "纪要强调队列入队出队；链式实现与删空维护按教材补充，用来防止与循环队列及链栈混淆，不声称已确定考此代码。"
+      },
+      "summary": "本节采用带头结点的链队。front始终指向头结点，真正的队头数据结点是front->next；rear指向最后一个数据结点，空队时rear也指向头结点。入队把新结点接在rear之后再更新rear，出队删除front后面的首个数据结点。由于头结点本身始终保留，front不必沿数据链移动；删去最后一个数据结点时必须把rear复位到front，避免留下指向已释放结点的悬空指针。",
+      "concepts": [
+        {
+          "term": "初始化和空队",
+          "definition": "分配一个头结点h，令h->next=NULL，front=rear=h。front==rear是此表示的空条件；与循环队列虽然公式表面相似，但这里比较的是结点指针而非数组下标。"
+        },
+        {
+          "term": "入队与出队",
+          "definition": "入队先令p->next=NULL，再rear->next=p、rear=p。出队令p=front->next，保存数据后front->next=p->next；若p==rear，再置rear=front，最后释放p。"
+        },
+        {
+          "term": "复杂度和内存",
+          "definition": "保留头、尾指针后单次入队与出队均为O(1)。动态分配仍可能失败；空队虽然没有数据元素，仍占一个头结点的空间，销毁时也要释放它。"
+        }
+      ],
+      "steps": [
+        "确认队列已初始化，front有效且rear指向当前尾结点或空队头结点。",
+        "入队前申请新结点，成功后接到rear并更新rear，失败不改队列。",
+        "出队先判front==rear，非空才取得front->next并保存数据。",
+        "先接回后继，若删的是尾结点则rear=front，再释放旧队头；用下一次入队检验空态是否完整。"
+      ],
+      "formulas": [
+        {
+          "label": "空链队",
+          "expression": "Q.front==Q.rear，且头结点next为NULL",
+          "condition": "带头结点且维护尾指针的链队，不使用模运算。"
+        }
+      ],
+      "pitfalls": [
+        "不能把front当作第一个数据结点读取data，头结点数据域不属于队列。",
+        "删最后一项却忘记重置rear，下一次入队可能写入已释放内存。",
+        "不带头结点链队会有另一组空指针维护规则，本节代码和结论不直接套用。"
+      ],
+      "example": {
+        "title": "删空后再次入队",
+        "problem": "初始化只有头结点H，先入队5，再出队，最后入队8。逐步给出front、rear及数据链。",
+        "steps": [
+          "初始front=rear=H，H->next=NULL。",
+          "入5后front仍H，H->next指向结点5，rear指向5。",
+          "出5时H->next置NULL，检测rear等于被删结点，将rear=H后释放5。",
+          "再入8可安全通过H->next接入，front仍H，rear指向8。"
+        ],
+        "answer": "出队值5；最终front指向H，rear指向结点8，数据序列为(8)。",
+        "origin": "original",
+        "sourceNote": "自编链队删空例题，依据3.5.3算法3.16—3.19；印刷81—83页，PDF93—95页。"
+      },
+      "code": {
+        "language": "c",
+        "label": "重构类C示例（C指针接口，非教材源码逐字转写）",
+        "text": "#include <stdlib.h>\ntypedef struct QNode { int data; struct QNode *next; } QNode;\ntypedef struct { QNode *front, *rear; } LinkQueue;\nint InitLinkQueue(LinkQueue *Q) {\n    if (!Q) return 0;\n    QNode *h = malloc(sizeof *h);\n    if (!h) return 0;\n    h->next = NULL;\n    Q->front = Q->rear = h;\n    return 1;\n}\nint LinkEnQueue(LinkQueue *Q, int e) {\n    if (!Q || !Q->front || !Q->rear) return 0;\n    QNode *p = malloc(sizeof *p);\n    if (!p) return 0;\n    p->data = e;\n    p->next = NULL;\n    Q->rear->next = p;\n    Q->rear = p;\n    return 1;\n}\nint LinkDeQueue(LinkQueue *Q, int *out) {\n    if (!Q || !out || !Q->front || Q->front == Q->rear) return 0;\n    QNode *p = Q->front->next;\n    *out = p->data;\n    Q->front->next = p->next;\n    if (Q->rear == p) Q->rear = Q->front;\n    free(p);\n    return 1;\n}",
+        "notes": [
+          "调用InitLinkQueue前Q指向可写结构且不拥有已初始化活队列，避免重复初始化丢失原链。",
+          "后续操作要求链结构正确、front与rear均已初始化；out与队列及结点不重叠。",
+          "成功出队仅释放数据结点；整队使用结束还应释放剩余结点及保留的头结点。"
+        ]
+      },
+      "source": {
+        "section": "3.5.3 链队的表示和实现，算法3.16—3.19",
+        "printedPages": [
+          81,
+          83
+        ],
+        "pdfPages": [
+          93,
+          95
+        ],
+        "verified": "text"
+      },
+      "related": [
+        "ch03-circular-queue",
+        "ch03-linked-stack"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "ch03-q01",
+      "type": "choice",
+      "topicId": "ch03-stack-sequences",
+      "prompt": "元素必须按1、2、3、4的次序各入栈一次，允许入栈与出栈交错，容量足够。下列哪个出栈序列不可能？",
+      "answer": 3,
+      "explanation": "要先输出3须先入1、2、3，弹出3后栈顶为2，不能越过2输出1。其余序列均能通过合法交错操作产生。",
+      "steps": [
+        "模拟以3开头的候选序列，压入1、2、3并弹3。",
+        "下一要求为1但栈顶为2，判为不可能。",
+        "其余可分别用“入1入2出2出1入3入4出4出3”等合法操作实现。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。",
+      "options": [
+        "2,1,4,3",
+        "3,2,1,4",
+        "4,3,2,1",
+        "3,1,2,4"
+      ]
+    },
+    {
+      "id": "ch03-q02",
+      "type": "calculation",
+      "topicId": "ch03-stack-sequences",
+      "prompt": "容量足够且初始为空。依次加入6、加入2、移出一次、加入9、移出两次。分别按栈和普通队列规则执行，求所有成功输出与最终剩余序列。",
+      "answer": "栈输出2、9、6；队列输出6、2、9；最终两者都为空。",
+      "explanation": "“移出”在栈中取最近未移出的元素，在队列中取最早未移出的元素。本题没有溢出或下溢。",
+      "steps": [
+        "前两次加入后均有6和2。",
+        "首次栈移出2，队列移出6。",
+        "加入9后栈为底6顶9，队列为头2尾9。",
+        "最后栈依次出9、6，队列依次出2、9。"
+      ],
+      "points": 5,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。"
+    },
+    {
+      "id": "ch03-q03",
+      "type": "choice",
+      "topicId": "ch03-sequential-stack",
+      "prompt": "教材指针式顺序栈已正确初始化，top指向下一空位。哪一组“判空；取非空栈顶”写法正确？",
+      "answer": 1,
+      "explanation": "空栈top==base，非空栈顶位于top−1。读取*top是读下一空位，不能把队列front/rear的规则放在这里。",
+      "steps": [
+        "确认top含义是下一写入位置。",
+        "空时与base重合，非空向前一位取顶。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。",
+      "options": [
+        "top==NULL；*top",
+        "top==base；*(top-1)",
+        "front==rear；*top",
+        "top-base==stacksize；*base"
+      ]
+    },
+    {
+      "id": "ch03-q04",
+      "type": "fill",
+      "fillKind": "program",
+      "topicId": "ch03-sequential-stack",
+      "prompt": "补全顺序栈弹出。SqStack含int *base、*top和容量；S、out有效且互不重叠，S已初始化，top在base至base+容量之间。失败不改变栈和*out；top指向下一空位。",
+      "answer": "___1___填S->base；___2___填*--S->top；___3___填1。",
+      "explanation": "先与base比较判空，再先减top后取值，最后返回成功标记1。单元素栈弹出后top等于base，空栈返回0且不写out。",
+      "steps": [
+        "空判定不使用front/rear。",
+        "把top先减1以指向旧栈顶。",
+        "读取该元素并返回1表示成功。"
+      ],
+      "points": 6,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。",
+      "code": "int Pop(SqStack *S, int *out) {\n    if (S->top == ___1___) return 0;\n    *out = ___2___;\n    return ___3___;\n}",
+      "blanks": [
+        {
+          "answer": "S->base",
+          "alternatives": [
+            "(S->base)"
+          ],
+          "hint": "已初始化栈的底指针。"
+        },
+        {
+          "answer": "*--S->top",
+          "alternatives": [
+            "*(--S->top)",
+            "*(--(S->top))"
+          ],
+          "hint": "先把top移到旧栈顶，再解引用；不能只读而不减。"
+        },
+        {
+          "answer": "1",
+          "alternatives": [],
+          "hint": "题设的成功返回值。"
+        }
+      ]
+    },
+    {
+      "id": "ch03-q05",
+      "type": "coding",
+      "topicId": "ch03-sequential-stack",
+      "prompt": "给出Peek(const SqStack *S,int *out)核心函数。SqStack含int *base、*top和stacksize，已初始化时top指向下一空位。只取非空栈顶，成功返回1并写out；S为空、out为空或空栈返回0，不改栈及out。out为独立可写对象。",
+      "answer": "int Peek(const SqStack *S, int *out) {\n    if (!S || !out || S->top == S->base) return 0;\n    *out = *(S->top - 1);\n    return 1;\n}",
+      "explanation": "重构类C示例。Peek访问*(top−1)而不修改top；与Pop的前置递减不同。对于底到顶(10,30)，取得30后仍为(10,30)，空栈时先返回0不读取数组。",
+      "steps": [
+        "先检查S、out与top==base。",
+        "非空时读取*(S->top−1)。",
+        "写*out后返回1，全程不修改S。"
+      ],
+      "points": 5,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。"
+    },
+    {
+      "id": "ch03-q06",
+      "type": "choice",
+      "topicId": "ch03-circular-queue",
+      "prompt": "数组容量M≥2，front指队头、rear指下一写入位置，预留一个空位。哪项同时正确给出队空、队满、最大元素数？",
+      "answer": 2,
+      "explanation": "本题采用教材预留一个空位方案，必须把空与满区分。只有front==rear判空，rear循环下一位等于front判满，最多M−1项。",
+      "steps": [
+        "先固定预留空位这一表示。",
+        "逐项核对空、满与容量上限。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。",
+      "options": [
+        "front==rear；front==rear；M",
+        "front==(rear+1)%M；front==rear；M-1",
+        "front==rear；(rear+1)%M==front；M-1",
+        "rear==M-1；front==0；M"
+      ]
+    },
+    {
+      "id": "ch03-q07",
+      "type": "calculation",
+      "topicId": "ch03-circular-queue",
+      "prompt": "预留一个空位的循环队列M=6，front=4、rear=1，逻辑元素为11、22、33，分别在下标4、5、0。执行：出队一次，入44，入55，入66，尝试入77。失败不改状态。求出队值、最终front/rear、长度及逻辑序列。",
+      "answer": "出队11；front=5，rear=4，长度(4−5+6)%6=5；序列(22,33,44,55,66)。此时已满，77入队失败。",
+      "explanation": "rear是下一次写入位置而非最后元素位置；回绕后rear小于front仍可非空。每次成功入队写旧rear位置后再取模更新。",
+      "steps": [
+        "出11后front=5，rear=1。",
+        "入44写下标1后rear=2。",
+        "入55写下标2后rear=3，入66写下标3后rear=4。",
+        "(4+1)%6=5等于front，故77不能入队。",
+        "从下标5起回绕枚举5、0、1、2、3得到最终序列。"
+      ],
+      "points": 5,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。"
+    },
+    {
+      "id": "ch03-q08",
+      "type": "fill",
+      "fillKind": "program",
+      "topicId": "ch03-circular-queue",
+      "prompt": "补全循环队列入队。SqQueue含data[M]、front、rear，M≥2，Q有效且下标均在0..M−1，预留一个空位，rear指下一写入位置。满时不改状态，成功返回1。",
+      "answer": "___1___填(Q->rear+1)%M；___2___填Q->rear；___3___填(Q->rear+1)%M。",
+      "explanation": "先计算rear循环下一位判满，写入当前rear，最后才推进rear。若先推进再写会错过约定写入位置。",
+      "steps": [
+        "循环下一位置等于front时为满。",
+        "新值放入当前下一空位data[rear]。",
+        "写完后令rear循环前进一格。"
+      ],
+      "points": 6,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。",
+      "code": "int EnQueue(SqQueue *Q, int e) {\n    if (___1___ == Q->front) return 0;\n    Q->data[___2___] = e;\n    Q->rear = ___3___;\n    return 1;\n}",
+      "blanks": [
+        {
+          "answer": "(Q->rear + 1) % M",
+          "alternatives": [
+            "((Q->rear + 1) % M)"
+          ],
+          "hint": "用尾下标的循环下一位判满。"
+        },
+        {
+          "answer": "Q->rear",
+          "alternatives": [
+            "(Q->rear)"
+          ],
+          "hint": "先写原rear所在位置。"
+        },
+        {
+          "answer": "(Q->rear + 1) % M",
+          "alternatives": [
+            "((Q->rear + 1) % M)"
+          ],
+          "hint": "使用模M实现尾下标回绕。"
+        }
+      ]
+    },
+    {
+      "id": "ch03-q09",
+      "type": "fill",
+      "fillKind": "program",
+      "topicId": "ch03-linked-stack",
+      "prompt": "补全无头结点链栈出栈。LinkStack是StackNode*，结点含data与next；S是栈顶变量的地址，S、out有效且互不重叠；free可用。空栈失败不改out，成功释放被弹结点。",
+      "answer": "___1___填*S；___2___填p->next。",
+      "explanation": "函数采用二级指针修改调用者的栈顶。判断*S为空，再把栈顶改为旧顶后继，最后释放p；不可释放后读取p->next。",
+      "steps": [
+        "空栈对应实际栈顶*S==NULL。",
+        "保存旧栈顶p和数据。",
+        "更新*S为p->next，再free(p)。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。",
+      "code": "int LinkPop(LinkStack *S, int *out) {\n    if (___1___ == NULL) return 0;\n    StackNode *p = *S;\n    *out = p->data;\n    *S = ___2___;\n    free(p);\n    return 1;\n}",
+      "blanks": [
+        {
+          "answer": "*S",
+          "alternatives": [
+            "(*S)"
+          ],
+          "hint": "判定实际栈顶指针，不是参数地址S。"
+        },
+        {
+          "answer": "p->next",
+          "alternatives": [
+            "(p->next)"
+          ],
+          "hint": "旧栈顶的后继成为新顶。"
+        }
+      ]
+    },
+    {
+      "id": "ch03-q10",
+      "type": "coding",
+      "topicId": "ch03-linked-stack",
+      "prompt": "实现无头结点链栈LinkPush(LinkStack *S,int e)。结点含int data和next，实际栈顶初值可为NULL。S为NULL或分配失败返回0且原栈不变；成功返回1。给出核心函数及必要类型，说明接链次序。",
+      "answer": "#include <stdlib.h>\ntypedef struct StackNode { int data; struct StackNode *next; } StackNode, *LinkStack;\nint LinkPush(LinkStack *S, int e) {\n    if (!S) return 0;\n    StackNode *p = malloc(sizeof *p);\n    if (!p) return 0;\n    p->data = e;\n    p->next = *S;\n    *S = p;\n    return 1;\n}",
+      "explanation": "重构类C示例。先分配并填写新结点，再令p->next=*S，最后*S=p。空栈时next得到NULL；分配失败不修改调用者栈顶，链栈仍可能因内存不足失败。",
+      "steps": [
+        "检查用于回写栈顶的S有效。",
+        "malloc失败直接返回0。",
+        "新结点先接住原链，再发布为新栈顶。",
+        "原栈顶到下为(8,4)，压入9后为(9,8,4)；调用者负责最终释放。"
+      ],
+      "points": 5,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。"
+    },
+    {
+      "id": "ch03-q11",
+      "type": "choice",
+      "topicId": "ch03-linked-queue",
+      "prompt": "带头结点链队中，front指头结点，rear指尾结点。删除唯一数据结点p时，在释放p前还必须执行什么？",
+      "answer": 0,
+      "explanation": "唯一数据结点被删后应恢复front==rear的空态。若rear仍指p，释放后成为悬空指针，下一次入队可能写已释放存储。",
+      "steps": [
+        "删除后没有任何数据结点。",
+        "头结点继续保留，应同时成为尾指针指向对象。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。",
+      "options": [
+        "rear=front",
+        "front=NULL",
+        "rear=p->next，之后始终不再维护",
+        "front=rear=p"
+      ]
+    },
+    {
+      "id": "ch03-q12",
+      "type": "coding",
+      "topicId": "ch03-linked-queue",
+      "prompt": "编写带头结点链队LinkDeQueue(LinkQueue *Q,int *out)。QNode含int data和next，LinkQueue含QNode *front、*rear。已初始化时front为头结点，rear为末数据结点，空队二者相等。成功返回1并释放旧队头数据结点，失败返回0不改状态与独立输出out；处理空参数及删唯一元素。",
+      "answer": "#include <stdlib.h>\ntypedef struct QNode { int data; struct QNode *next; } QNode;\ntypedef struct { QNode *front, *rear; } LinkQueue;\nint LinkDeQueue(LinkQueue *Q, int *out) {\n    if (!Q || !out || !Q->front || Q->front == Q->rear) return 0;\n    QNode *p = Q->front->next;\n    *out = p->data;\n    Q->front->next = p->next;\n    if (Q->rear == p) Q->rear = Q->front;\n    free(p);\n    return 1;\n}",
+      "explanation": "重构类C示例。头结点不删除，先保存front->next的数据并接回其后继；若rear就是被删结点，rear=front恢复空队，再释放p。输入结构须已初始化且无环。",
+      "steps": [
+        "检查Q、out、front及空队条件。",
+        "p=front->next，保存p->data。",
+        "令front->next=p->next；若p==rear则rear=front。",
+        "释放p并返回1；如只有5，出队得5，front=rear且front->next=NULL，后续可安全入队。"
+      ],
+      "points": 5,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编训练题，依据对应知识点所列教材定义与算法思想设计，非教材原题；代码为标明表示与接口差异的重构类C示例。"
+    }
+  ]
+}

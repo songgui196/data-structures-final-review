@@ -1,0 +1,12 @@
+﻿# Source extraction workspace and local tooling
+.book-to-skill-work/
+
+# Local/editor/runtime artifacts
+node_modules/
+.vscode/
+.idea/
+*.log
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

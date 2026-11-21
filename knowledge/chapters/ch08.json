@@ -1,0 +1,653 @@
+{
+  "id": "ch08",
+  "number": 8,
+  "title": "排序",
+  "summary": "比较插入、冒泡、快速、堆与归并排序的逐趟变化、稳定性和渐进代价。先写明升降序、初始增量、枢轴和相等键处理，再逐趟记录数组；不同分区代码不得混作同一算法。",
+  "examFocus": [
+    "纪要明确强调插入、希尔、冒泡和快速排序过程与代码；希尔排序还涉及旧题复习。",
+    "堆排序和归并排序按纪要作了解及基础辨析，仍保留本章选择训练。",
+    "本库快排题均显式声明分区方式，希尔排序必须给出增量序列。"
+  ],
+  "topics": [
+    {
+      "id": "ch08-sort-analysis",
+      "title": "排序性质与复杂度",
+      "priority": "foundation",
+      "examTypes": [
+        "choice",
+        "fill",
+        "calculation"
+      ],
+      "examEvidence": {
+        "level": "emphasis",
+        "note": "纪要要求比较排序过程和算法性质；复杂度用于基础辨析。"
+      },
+      "summary": "稳定性指关键字相同记录排序后相对次序不变；它与是否原地排序、是否适合链表是不同属性。直接插入和冒泡的常用版本稳定；希尔、快速、堆通常不稳定；归并在相等时先取左段可保持稳定。快速排序平均O(nlog n)、最坏O(n²)；归并和堆最坏O(nlog n)。归并通常需O(n)辅助空间，堆排序可O(1)额外空间。复杂度表要结合具体算法版本和初始序列，不能只因一组有序输入就给一般最坏界。",
+      "concepts": [
+        {
+          "term": "稳定性",
+          "definition": "相等关键字记录排序后相对次序不变。"
+        },
+        {
+          "term": "原地",
+          "definition": "辅助空间为常数级的算法属性，不等于稳定。"
+        },
+        {
+          "term": "最坏界",
+          "definition": "对所有允许输入中的最大代价作渐进界估计。"
+        }
+      ],
+      "steps": [
+        "逐一比较时间、辅助空间、稳定性。",
+        "指出复杂度属于最好、平均还是最坏。",
+        "检查算法适用的存储结构与数据条件。"
+      ],
+      "formulas": [
+        {
+          "label": "快速排序平均",
+          "expression": "O(nlog n)",
+          "condition": "划分较均衡"
+        },
+        {
+          "label": "快速排序最坏",
+          "expression": "O(n²)",
+          "condition": "每次极不均衡"
+        },
+        {
+          "label": "归并/堆最坏",
+          "expression": "O(nlog n)",
+          "condition": "标准实现"
+        }
+      ],
+      "pitfalls": [
+        "稳定不代表复杂度低。",
+        "平均复杂度不能代替最坏复杂度。",
+        "快排不同分区方案的过程和常数操作不同。"
+      ],
+      "example": {
+        "title": "识别稳定排序",
+        "problem": "相同关键字记录为(5,a),(5,b)，算法输出(5,b),(5,a)，是否稳定？",
+        "steps": [
+          "原顺序a先于b。",
+          "输出中b先于a。",
+          "相等键相对次序改变。"
+        ],
+        "answer": "不稳定。",
+        "origin": "original",
+        "sourceNote": "依据所列教材章节概念与约定重新设计的自编例题。"
+      },
+      "code": null,
+      "source": {
+        "section": "8.1 基本概念和排序方法概述（289–291页）；8.9 表8.2 各种内部排序方法的比较（326页）",
+        "printedPages": [
+          289,
+          326
+        ],
+        "pdfPages": [
+          301,
+          338
+        ],
+        "verified": "text"
+      },
+      "related": []
+    },
+    {
+      "id": "ch08-insertion-shell",
+      "title": "直接插入与希尔排序",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "fill",
+        "calculation",
+        "coding"
+      ],
+      "examEvidence": {
+        "level": "explicit",
+        "note": "纪要明确强调插入排序与希尔排序；题面需要提供初始序列和增量。"
+      },
+      "summary": "直接插入每次把当前记录插入前面已排序前缀，较大记录向右移动；稳定，近乎有序时最好O(n)，一般与最坏O(n²)。希尔排序使用递减增量把记录分组并做组内插入，最后增量1完成全体直接插入。某趟之后，只保证每个增量子序列各自有序，不保证整个序列已全局有序。希尔排序通常不稳定，时间界依赖增量序列。做希尔手算时应明确增量、分组、组内处理顺序；增量没给时，不应给唯一中间序列。",
+      "concepts": [
+        {
+          "term": "直接插入",
+          "definition": "按顺序将待插元素插入已排序前缀。"
+        },
+        {
+          "term": "希尔增量",
+          "definition": "按增量分组，逐趟递减直至1。"
+        }
+      ],
+      "steps": [
+        "将第一个元素视作有序区。",
+        "保存当前待插关键字。",
+        "较大前驱依次右移。",
+        "放入空位；希尔每个增量组独立执行此步骤。"
+      ],
+      "formulas": [
+        {
+          "label": "直接插入最好",
+          "expression": "O(n)",
+          "condition": "输入已升序"
+        },
+        {
+          "label": "直接插入平均/最坏",
+          "expression": "O(n²)",
+          "condition": "一般/逆序输入"
+        }
+      ],
+      "pitfalls": [
+        "把希尔某一增量趟后结果称作全局有序。",
+        "只在前项严格大于key时移动以保留直接插入稳定性。",
+        "未写增量序列无法确定希尔每趟结果。"
+      ],
+      "example": {
+        "title": "直接插入一次",
+        "problem": "把4插入已排序前缀[2,5,7]。",
+        "steps": [
+          "5和7后移。",
+          "4放在2之后。"
+        ],
+        "answer": "[2,4,5,7]，移动两个已有元素。",
+        "origin": "original",
+        "sourceNote": "依据所列教材章节概念与约定重新设计的自编例题。"
+      },
+      "code": {
+        "language": "textbook-c",
+        "label": "重构类C示例：0-based 稳定直接插入",
+        "text": "for (int i = 1; i < n; ++i) {\n    int key = A[i];\n    int j = i - 1;\n    while (j >= 0 && A[j] > key) {\n        A[j + 1] = A[j];\n        --j;\n    }\n    A[j + 1] = key;\n}",
+        "notes": [
+          "数组使用0起始下标，升序；>比较保留相等键相对顺序。",
+          "教材算法按其类C约定转写，独立示例可按标准C补充类型。"
+        ]
+      },
+      "source": {
+        "section": "8.2.1 直接插入排序；8.2.3 希尔排序",
+        "printedPages": [
+          292,
+          296
+        ],
+        "pdfPages": [
+          304,
+          308
+        ],
+        "verified": "text"
+      },
+      "related": []
+    },
+    {
+      "id": "ch08-exchange",
+      "title": "冒泡排序与快速排序",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "calculation",
+        "coding",
+        "integrated"
+      ],
+      "examEvidence": {
+        "level": "explicit",
+        "note": "纪要明确强调冒泡与快排过程；本库每题标明方向和分区口径。"
+      },
+      "summary": "冒泡排序反复比较相邻记录并交换逆序对；升序的常见从左向右版本会把当前未排序区最大值送到右端，一趟无交换可提前结束。快速排序选择枢轴，按分区约定将区间划成左右子区后递归；平均O(nlog n)，最坏O(n²)，常见版本不稳定。枢轴选取、扫描方向和等值处理都会影响中间结果。这里的 Lomuto 版本用末元素作枢轴，从左向右扫描，严格小于枢轴的元素进入左区。作答必须照题目指定的代码移动下标；缺少明确版本时只描述性质，不把单一划分轨迹当成通用答案。",
+      "concepts": [
+        {
+          "term": "冒泡",
+          "definition": "相邻比较，逆序时交换；每趟缩小未排序区。"
+        },
+        {
+          "term": "快速排序",
+          "definition": "枢轴划分后递归排序两侧子区。"
+        },
+        {
+          "term": "Lomuto分区",
+          "definition": "以末元素为枢轴，将较小元素移至左侧，再将枢轴归位。"
+        }
+      ],
+      "steps": [
+        "确定升序/降序和当前未排序范围。",
+        "按题定版本选择枢轴和扫描方向。",
+        "逐次记录比较、交换与指针移动。",
+        "分区完成后递归处理两侧。"
+      ],
+      "formulas": [
+        {
+          "label": "冒泡最好",
+          "expression": "O(n)",
+          "condition": "使用无交换提前结束"
+        },
+        {
+          "label": "快速平均/最坏",
+          "expression": "O(nlog n)/O(n²)",
+          "condition": "依划分平衡程度"
+        }
+      ],
+      "pitfalls": [
+        "快排分区版本不同，中间序列可能不同。",
+        "枢轴归位后不要再纳入左右递归子区。",
+        "冒泡方向变化会改变每趟固定到位的边。"
+      ],
+      "example": {
+        "title": "末元素枢轴的 Lomuto 分区",
+        "problem": "对数组 [5,2,7,1,4] 做一次升序 Lomuto 分区，以末元素 4 为枢轴，求分区结果与枢轴下标（从 0 开始）。",
+        "steps": [
+          "取 A[4]=4 为枢轴，令 i=0 指向左区的下一空位。",
+          "从左到右扫描 [0,3]，先将 2 交换到下标 0，再将 1 交换到下标 1，此时 i=2。",
+          "交换 A[2] 与 A[4]，令枢轴归位。"
+        ],
+        "answer": "[2,1,4,5,7]，枢轴下标为 2，左右递归闭区间为 [0,1] 和 [3,4]。",
+        "origin": "original",
+        "sourceNote": "自编例题，使用题面指定的 Lomuto 分区变体。"
+      },
+      "code": {
+        "language": "textbook-c",
+        "label": "重构类C示例：Lomuto 分区",
+        "text": "int partition(int A[], int low, int high) {\n    int pivot = A[high];\n    int i = low;\n    for (int j = low; j < high; ++j) {\n        if (A[j] < pivot) {\n            swap(&A[i], &A[j]);\n            ++i;\n        }\n    }\n    swap(&A[i], &A[high]);\n    return i;\n}",
+        "notes": [
+          "此处采用末元素枢轴和单向扫描，教材算法 8.5 使用首元素枢轴与双向扫描。",
+          "下标从 0 开始，在有效闭区间 [low,high] 上分区。swap 为交换两个整型元素的辅助函数。"
+        ]
+      },
+      "source": {
+        "section": "8.3.1 冒泡排序；8.3.2 快速排序",
+        "printedPages": [
+          296,
+          301
+        ],
+        "pdfPages": [
+          308,
+          313
+        ],
+        "verified": "text"
+      },
+      "related": []
+    },
+    {
+      "id": "ch08-heap-merge",
+      "title": "堆排序与归并排序",
+      "priority": "overview",
+      "examTypes": [
+        "choice",
+        "fill",
+        "calculation"
+      ],
+      "examEvidence": {
+        "level": "suggestion",
+        "note": "纪要要求了解堆与归并，故训练复杂度、稳定性和基本操作；仍保留章节选择练习。"
+      },
+      "summary": "堆排序先建堆，再将堆顶与未排序区末端交换并逐步缩小堆区，随后向下筛选恢复堆性质；最坏O(nlog n)、原地但不稳定。归并排序反复把相邻有序段合并，平均和最坏O(nlog n)，通常需O(n)辅助空间；相等时优先取左段可保持稳定。堆的孩子下标要依据0/1起始公式统一；归并的左右输入区间与输出临时区间边界必须一致。两者每趟操作逻辑不同，不要用“取当前最小值”概括替代实际调整/归并。",
+      "concepts": [
+        {
+          "term": "堆排序",
+          "definition": "堆顶反复输出并恢复堆性质。"
+        },
+        {
+          "term": "二路归并",
+          "definition": "把两个相邻有序段合为一个有序段。"
+        },
+        {
+          "term": "稳定归并",
+          "definition": "两段键相等时先取左段记录。"
+        }
+      ],
+      "steps": [
+        "堆：建初堆，交换堆顶与末端，缩小范围并筛选。",
+        "归并：逐对比较两个有序段头部。",
+        "处理剩余尾段并写入辅助区。",
+        "按趟次扩大合并段长。"
+      ],
+      "formulas": [
+        {
+          "label": "堆排序最坏",
+          "expression": "O(nlog n)",
+          "condition": "标准二叉堆"
+        },
+        {
+          "label": "归并排序时间",
+          "expression": "O(nlog n)",
+          "condition": "标准二路实现"
+        },
+        {
+          "label": "归并辅助空间",
+          "expression": "O(n)",
+          "condition": "数组版本"
+        }
+      ],
+      "pitfalls": [
+        "堆排序不稳定；归并稳定性依相等时的选择规则。",
+        "堆的0起始与1起始孩子公式不同。",
+        "临时数组下标若不匹配源区间会覆盖或漏项。"
+      ],
+      "example": {
+        "title": "稳定合并",
+        "problem": "稳定归并[1,4左,8]与[2,4右,7]。",
+        "steps": [
+          "依序取1、2。",
+          "两个4相等时先取左段。",
+          "继续取右段4、7、8。"
+        ],
+        "answer": "[1,2,4左,4右,7,8]。",
+        "origin": "original",
+        "sourceNote": "依据所列教材章节概念与约定重新设计的自编例题。"
+      },
+      "code": null,
+      "source": {
+        "section": "8.4.3 堆排序；8.5 归并排序",
+        "printedPages": [
+          304,
+          311
+        ],
+        "pdfPages": [
+          316,
+          323
+        ],
+        "verified": "text"
+      },
+      "related": []
+    }
+  ],
+  "questions": [
+    {
+      "id": "ch08-q01",
+      "type": "choice",
+      "topicId": "ch08-sort-analysis",
+      "prompt": "稳定排序意味着什么？",
+      "answer": 1,
+      "explanation": "相等关键字记录排序后仍保持相对次序。",
+      "steps": [
+        "查看相同键记录前后的相对顺序。",
+        "其他属性如时间和额外空间不决定稳定性。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "只交换相邻记录",
+        "相等关键字记录相对次序不变",
+        "一定O(nlogn)",
+        "一定原地"
+      ]
+    },
+    {
+      "id": "ch08-q02",
+      "type": "fill",
+      "topicId": "ch08-sort-analysis",
+      "prompt": "快速排序平均时间复杂度___1___，最坏时间复杂度___2___。",
+      "answer": "O(nlogn)；O(n²)。",
+      "explanation": "平衡划分与极端不均衡划分对应不同递归深度。",
+      "steps": [
+        "平均划分深度为对数级。",
+        "最坏每次仅排除一个元素。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "code": "平均：___1___\n最坏：___2___",
+      "blanks": [
+        {
+          "answer": "O(nlogn)",
+          "alternatives": [
+            "O(n log n)",
+            "O(n log₂ n)",
+            "O(nlog₂n)"
+          ],
+          "hint": "每层工作n，共约log n层。"
+        },
+        {
+          "answer": "O(n²)",
+          "alternatives": [
+            "O(n^2)",
+            "O(n2)"
+          ],
+          "hint": "递归每次只减少一个元素。"
+        }
+      ]
+    },
+    {
+      "id": "ch08-q03",
+      "type": "calculation",
+      "topicId": "ch08-sort-analysis",
+      "prompt": "[1,2,3,4]已经升序，直接插入排序需移动多少已有元素到右侧？",
+      "answer": "0。",
+      "explanation": "每个关键字都不小于已排序前缀末项，内层后移条件不成立。",
+      "steps": [
+        "逐项插入检查其前驱。",
+        "没有元素后移。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch08-q04",
+      "type": "choice",
+      "topicId": "ch08-insertion-shell",
+      "prompt": "希尔排序最后一趟的增量通常为？",
+      "answer": 0,
+      "explanation": "增量1使全体记录构成一个组并完成直接插入。",
+      "steps": [
+        "检查希尔增量递减序列的终点。",
+        "最后一趟覆盖全体数据。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "1",
+        "0",
+        "n",
+        "任意值"
+      ]
+    },
+    {
+      "id": "ch08-q05",
+      "type": "calculation",
+      "topicId": "ch08-insertion-shell",
+      "prompt": "把4插入升序前缀[2,5,7]，结果与已有元素移动次数？",
+      "answer": "[2,4,5,7]；5和7右移，共2次。",
+      "explanation": "4应置于2之后、5之前。",
+      "steps": [
+        "依次右移7和5。",
+        "在下标1放置4。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch08-q06",
+      "type": "coding",
+      "topicId": "ch08-insertion-shell",
+      "prompt": "写出直接插入排序的稳定内层逻辑。",
+      "answer": "保存key，仅在前驱大于key时右移，最终写入空位。",
+      "explanation": "严格大于条件遇相同关键字停止移动，维持稳定性。",
+      "steps": [
+        "从i=1开始。",
+        "保存当前key。",
+        "右移较大前驱。",
+        "回填key。"
+      ],
+      "points": 4,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "code": "for (int i = 1; i < n; ++i) {\n    int key = A[i];\n    int j = i - 1;\n    while (j >= 0 && A[j] > key) {\n        A[j + 1] = A[j];\n        --j;\n    }\n    A[j + 1] = key;\n}"
+    },
+    {
+      "id": "ch08-q07",
+      "type": "choice",
+      "topicId": "ch08-exchange",
+      "prompt": "升序冒泡从左向右的一趟后，哪个元素到达未排序区末端？",
+      "answer": 2,
+      "explanation": "最大元素逐次通过相邻交换到达该趟右端。",
+      "steps": [
+        "模拟大值和右邻交换。",
+        "一趟后未排序区最大值固定到末尾。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "最小元素",
+        "中位数",
+        "最大元素",
+        "枢轴元素"
+      ]
+    },
+    {
+      "id": "ch08-q08",
+      "type": "calculation",
+      "topicId": "ch08-exchange",
+      "prompt": "[5,2,7,1,4]以末元素4为Lomuto枢轴，求一趟分区结果。",
+      "answer": "[2,1,4,5,7]，枢轴在下标2。",
+      "explanation": "扫描将小于4的2、1移到左侧，最后枢轴归位。",
+      "steps": [
+        "2被移至左区。",
+        "1被移至左区。",
+        "枢轴与分界位置交换。"
+      ],
+      "points": 4,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch08-q09",
+      "type": "coding",
+      "topicId": "ch08-exchange",
+      "prompt": "写出冒泡排序一趟无交换即可提前停止的条件。",
+      "answer": "每一趟开始令swapped=false；交换时置true；趟末若false则终止。",
+      "explanation": "没有相邻逆序就意味着序列已升序。",
+      "steps": [
+        "设置标志。",
+        "逆序交换时置真。",
+        "趟末检查并退出。"
+      ],
+      "points": 4,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "code": "for (int end = n - 1; end > 0; --end) {\n    bool swapped = false;\n    for (int j = 0; j < end; ++j)\n        if (A[j] > A[j + 1]) { swap(A[j], A[j + 1]); swapped = true; }\n    if (!swapped) break;\n}"
+    },
+    {
+      "id": "ch08-q10",
+      "type": "integrated",
+      "topicId": "ch08-exchange",
+      "prompt": "对[5,2,7,1,4]采用末元素枢轴Lomuto分区，逐步列出分区数组、枢轴位置及左右递归区间。",
+      "answer": "分区后[2,1,4,5,7]，枢轴4在下标2；左区[0,1]，右区[3,4]。",
+      "explanation": "2和1依次进入小于4的左区，随后枢轴归位；递归不再包含枢轴下标。",
+      "steps": [
+        "初态 [5,2,7,1,4]，以 4 为枢轴，扫描 j=0..3。",
+        "5 不小于 4；遇到 2 时交换，得到 [2,5,7,1,4]。",
+        "7 不小于 4；遇到 1 时交换，得到 [2,1,7,5,4]。",
+        "交换枢轴后得到 [2,1,4,5,7]，枢轴下标为 2。",
+        "左右递归区间是 [0,1]、[3,4]，都排除枢轴。"
+      ],
+      "points": 10,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch08-q11",
+      "type": "choice",
+      "topicId": "ch08-heap-merge",
+      "prompt": "标准二路归并排序的时间复杂度通常为？",
+      "answer": 0,
+      "explanation": "每层合并总工作O(n)，共有O(log n)层。",
+      "steps": [
+        "确认每趟合并处理全部n个记录。",
+        "乘以对数趟数。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "O(nlogn)",
+        "O(n²)",
+        "O(logn)",
+        "O(1)"
+      ]
+    },
+    {
+      "id": "ch08-q12",
+      "type": "fill",
+      "topicId": "ch08-heap-merge",
+      "prompt": "稳定归并在两段关键字相等时优先取___1___段；标准数组归并通常需要___2___辅助空间。",
+      "answer": "左；O(n)。",
+      "explanation": "相等时取左段可保持原相对次序；临时数组存合并结果。",
+      "steps": [
+        "保持相等记录先后次序。",
+        "按数组实现给出临时存储量。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "code": "键相等时先取___1___段\n辅助空间___2___",
+      "blanks": [
+        {
+          "answer": "左",
+          "alternatives": [
+            "左边",
+            "左侧"
+          ],
+          "hint": "两段在原数组的相邻先后次序？"
+        },
+        {
+          "answer": "O(n)",
+          "alternatives": [
+            "O(n)",
+            "n",
+            "线性"
+          ],
+          "hint": "通常需要一个与记录数成正比的临时数组。"
+        }
+      ]
+    },
+    {
+      "id": "ch08-q13",
+      "type": "calculation",
+      "topicId": "ch08-heap-merge",
+      "prompt": "稳定归并[1,4左,8]和[2,4右,7]的结果？",
+      "answer": "[1,2,4左,4右,7,8]。",
+      "explanation": "两段首部4相等时先取左段记录。",
+      "steps": [
+        "依次比较两个段头。",
+        "相等时选左段。",
+        "继续复制未耗尽的段。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。"
+    },
+    {
+      "id": "ch08-q14",
+      "type": "choice",
+      "topicId": "ch08-heap-merge",
+      "prompt": "常见数组堆排序的性质是哪项？",
+      "answer": 2,
+      "explanation": "堆排序原地、最坏O(nlogn)，但不稳定。",
+      "steps": [
+        "区分空间与稳定性。",
+        "调整可能改变相同键的相对顺序。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编练习题；按本知识点教材出处重新编写，非教材原题或历年真题。",
+      "options": [
+        "稳定且O(n)空间",
+        "最坏O(n²)",
+        "原地且不稳定，最坏O(nlogn)",
+        "仅用于链表"
+      ]
+    }
+  ]
+}

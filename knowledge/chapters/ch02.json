@@ -1,0 +1,739 @@
+{
+  "id": "ch02",
+  "number": 2,
+  "title": "线性表",
+  "summary": "以顺序表查找、插入和地址计算，以及带头结点单链表头插、尾插为主线，统一位序、表示和失败约定。补充删除与存储取舍以讲清边界；教材循环链表、双向链表、应用等未单列专项不表示已被排除。",
+  "examFocus": [
+    "纪要明确列出的顺序表查找、插入、地址计算，以及单链表头插、尾插和代码为本章训练重点。",
+    "程序填空采用注明差异的重构类C示例，不冒充纪要所说的实际教材源码考题。",
+    "题目赋分仅用于练习；编程接受何种语言标准及实际出题算法尚待课程材料确认。"
+  ],
+  "topics": [
+    {
+      "id": "ch02-sequential-address",
+      "title": "顺序表表示、位序与地址计算",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "calculation"
+      ],
+      "examEvidence": {
+        "level": "explicit",
+        "note": "范围依据第二章明确列出顺序表查找、插入、地址计算及单链表头插、尾插和代码；这里据此安排训练，不承诺具体命题或分值。"
+      },
+      "summary": "线性表是具有相同特性的数据元素的有限序列，长度可以为零；非空线性表的元素具有先后关系。顺序表利用一段连续空间存放线性表。教材中的逻辑位序从1开始，而C数组下标从0开始，因此第i个元素存于elem[i−1]。计算地址时应先统一基地址所对应的元素，再乘每个元素占用的存储单元数。顺序访问与随机存取不是同一个概念，随机存取说明按给定位序定位可为常数时间。",
+      "concepts": [
+        {
+          "term": "长度与容量",
+          "definition": "长度n是当前有效元素个数，容量是已分配空间能容纳的最大元素数，两者不能混用。访问要求1≤i≤n，插入另允许i=n+1。"
+        },
+        {
+          "term": "位序与下标",
+          "definition": "a1、a2等表示逻辑位序，elem[0]、elem[1]等表示实现下标。题目若另给任意下界，必须减去相应下界，而不是机械地减1。"
+        },
+        {
+          "term": "地址单位",
+          "definition": "若基地址B以字节计、每元素w字节，则偏移也按字节计算。题目会明确元素大小，不能根据int或指针名称自行假定平台字节数。"
+        }
+      ],
+      "steps": [
+        "写出B对应的是a1还是其他下标处的元素，并记录单位。",
+        "将目标位序转换为相对于基元素的偏移个数。",
+        "用偏移个数乘单个元素大小，再加基地址。",
+        "检查位序是否落在有效元素范围；空表没有可取的第一个数据元素。"
+      ],
+      "formulas": [
+        {
+          "label": "按逻辑位序寻址",
+          "expression": "LOC(ai)=LOC(a1)+(i−1)×w",
+          "condition": "1≤i≤n，元素等长且连续存储。"
+        },
+        {
+          "label": "一般数组下标寻址",
+          "expression": "LOC(A[k])=B+(k−b)×w",
+          "condition": "B=LOC(A[b])，k在合法范围内；地址和w单位一致。"
+        }
+      ],
+      "pitfalls": [
+        "把第i个元素直接当作elem[i]会使结果多偏移一个元素。",
+        "容量内尚未使用的单元不是当前线性表的有效元素，不能因地址可算就宣称取值合法。",
+        "顺序表可以按关键字无序；“顺序”描述连续存储而非数值排序。"
+      ],
+      "example": {
+        "title": "同时核对位序与地址",
+        "problem": "顺序表有5个有效元素，a1的起始地址为1000，每元素8字节，求a4地址及其数组下标。",
+        "steps": [
+          "a4与a1相隔4−1=3个元素。",
+          "偏移为3×8=24字节，地址为1000+24=1024。",
+          "a4对应elem[3]；位序4在1至5内，访问合法。",
+          "若改问a6，虽然能算出存储偏移，也不属于该表当前有效元素。"
+        ],
+        "answer": "a4起始地址1024，对应下标3。",
+        "origin": "original",
+        "sourceNote": "自编地址例题，依据2.4.1公式，非教材原数值；印刷23—24页，PDF35—36页。"
+      },
+      "code": null,
+      "source": {
+        "section": "2.1 线性表的定义和特点；2.4.1 线性表的顺序表示",
+        "printedPages": [
+          19,
+          24
+        ],
+        "pdfPages": [
+          31,
+          36
+        ],
+        "verified": "text"
+      },
+      "related": [
+        "ch02-sequential-search",
+        "ch02-sequential-update"
+      ]
+    },
+    {
+      "id": "ch02-sequential-search",
+      "title": "顺序表取值与按值查找",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "fill",
+        "calculation"
+      ],
+      "examEvidence": {
+        "level": "explicit",
+        "note": "范围依据第二章明确列出顺序表查找、插入、地址计算及单链表头插、尾插和代码；这里据此安排训练，不承诺具体命题或分值。"
+      },
+      "summary": "顺序表取值与按值查找回答不同问题。给定位序取值，可通过elem[i−1]直接取得元素，时间为O(1)；给定一个值寻找位置，在未排序的表中通常需要逐个比较，最坏时间为O(n)。本节遵循教材算法2.3的返回约定：从表头向后查找，成功返回第一个相等元素的1起始位序，失败返回0。这样位序1和失败0不会冲突，也便于分析重复值与空表。",
+      "concepts": [
+        {
+          "term": "首次命中",
+          "definition": "顺序查找从下标0开始，一旦发现相等就返回j+1。因此有重复关键字时返回最靠前的命中位置，不是所有位置，也不是最后一个位置。"
+        },
+        {
+          "term": "成功与失败的代价",
+          "definition": "在第i个位序命中需要i次元素比较；长度n的表查找失败需要n次比较。这里数元素相等比较，不把循环条件也算作一次关键字比较。"
+        },
+        {
+          "term": "平均查找长度",
+          "definition": "若n≥1且成功命中每个位序的概率均为1/n，成功平均比较次数为(n+1)/2；如果给了失败概率或非均匀概率，应按题设重新加权。"
+        }
+      ],
+      "steps": [
+        "先确认输入是位序还是目标值，避免把取值复杂度套给查找。",
+        "从下标0比较到length−1，首次相等返回下标加1。",
+        "循环结束仍未命中，返回0；空表循环不执行也返回0。",
+        "按命中位序或失败情况统计比较次数，再在明确的概率模型下求平均。"
+      ],
+      "formulas": [
+        {
+          "label": "成功平均比较次数",
+          "expression": "ASL=(1+2+…+n)/n=(n+1)/2",
+          "condition": "n≥1，目标必然存在且每个位序等概率。"
+        },
+        {
+          "label": "失败比较次数",
+          "expression": "Cfail=n",
+          "condition": "逐个扫描全部n个元素，不使用哨兵。"
+        }
+      ],
+      "pitfalls": [
+        "返回j会把首元素命中返回成0，与教材失败标记冲突。",
+        "数组支持随机存取，不表示在无序表中按值查找也只需O(1)。",
+        "没有给成功概率时，不能把失败的n次比较混入等概率成功平均公式。"
+      ],
+      "example": {
+        "title": "重复关键字和失败情形",
+        "problem": "L=(18,7,18,25)。依次独立查找18和9，返回什么位序，各比较几次？",
+        "steps": [
+          "查找18时，第1个元素已经相等，立即返回1，只比较1次。",
+          "查找9时依次比较18、7、18、25，均不相等。",
+          "全部4个元素比较完毕返回0，不能返回最后检查的下标。",
+          "若L为空，两次查找都返回0，元素比较次数为0。"
+        ],
+        "answer": "查18：返回1、比较1次；查9：返回0、比较4次。",
+        "origin": "original",
+        "sourceNote": "自编查找例题，依据2.4.2算法2.2—2.3的位序和返回约定；印刷26—27页，PDF38—39页。"
+      },
+      "code": {
+        "language": "c",
+        "label": "重构类C示例（C指针接口，非教材源码逐字转写）",
+        "text": "typedef struct { int elem[100]; int length; } SqList;\nint LocateElem(const SqList *L, int e) {\n    for (int j = 0; j < L->length; ++j)\n        if (L->elem[j] == e) return j + 1;\n    return 0;\n}",
+        "notes": [
+          "以int为元素类型，采用固定容量100的数组，替代教材动态elem指针，查找次序与返回位序保持一致。",
+          "前提：L指向有效SqList，0≤length≤100；本函数不负责初始化或校验损坏的表示。",
+          "返回0表示未找到；空表安全返回0；这是重构代码，未声称与教材原码逐字一致。"
+        ]
+      },
+      "source": {
+        "section": "2.4.2 顺序表中基本操作的实现，算法2.2—2.3",
+        "printedPages": [
+          26,
+          27
+        ],
+        "pdfPages": [
+          38,
+          39
+        ],
+        "verified": "text"
+      },
+      "related": [
+        "ch02-sequential-address",
+        "ch02-sequential-update"
+      ]
+    },
+    {
+      "id": "ch02-sequential-update",
+      "title": "顺序表插入、删除与移动次数",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "fill",
+        "calculation",
+        "coding"
+      ],
+      "examEvidence": {
+        "level": "explicit",
+        "note": "范围依据第二章明确列出顺序表查找、插入、地址计算及单链表头插、尾插和代码；这里据此安排训练，不承诺具体命题或分值。"
+      },
+      "summary": "在长度为n的顺序表第i个位序插入，含义是在原第i个元素之前放入新值；允许1≤i≤n+1，且必须留有容量。由于逻辑顺序要保持，插入时应从后向前把原元素整体右移，避免覆盖尚未搬走的数据。删除第i个元素则要求1≤i≤n，先保存被删值，再把其后的元素从前向后左移。两种操作均在成功后恰好修改一次长度，非法请求应保持表及输出参数不变。",
+      "concepts": [
+        {
+          "term": "插入移动范围",
+          "definition": "原数组下标从n−1递减到i−1，赋值elem[j+1]=elem[j]。写入位置为elem[i−1]；空表只允许位序1，尾插不移动已有元素。"
+        },
+        {
+          "term": "删除移动范围",
+          "definition": "保存elem[i−1]后，从下标i递增到n−1，赋值elem[j−1]=elem[j]。删除末元素无须移动；空表没有合法删除位序。"
+        },
+        {
+          "term": "复杂度与概率",
+          "definition": "最坏插入和删除均为O(n)，尾部可为O(1)。等概率选择n+1个插入位置时平均移动n/2个；等概率删除n个元素时平均移动(n−1)/2个。"
+        }
+      ],
+      "steps": [
+        "先核对当前长度、容量和位序，不合法立即失败且不修改状态。",
+        "插入采用从后向前右移，删除采用从前向后左移，写明首末下标。",
+        "写入新值或保存被删值，再在成功路径更新length。",
+        "用操作前的长度计算本次移动次数；连续多次操作必须先更新长度再算下一步。"
+      ],
+      "formulas": [
+        {
+          "label": "插入移动数",
+          "expression": "n−i+1",
+          "condition": "在原第i个元素前插入，1≤i≤n+1，空间足够。"
+        },
+        {
+          "label": "删除移动数",
+          "expression": "n−i",
+          "condition": "删除操作前长度为n，1≤i≤n。"
+        },
+        {
+          "label": "等概率平均移动数",
+          "expression": "插入n/2；删除(n−1)/2",
+          "condition": "分别在全部合法插入或删除位序上等概率，删除要求n≥1。"
+        }
+      ],
+      "pitfalls": [
+        "插入时从前向后移动会覆盖后续原值；不能照搬删除方向。",
+        "先增加length再用新长度当作原长度，会访问错误的边界单元。",
+        "满表即使尾插也失败；移动次数为0不等于无需检查容量。"
+      ],
+      "example": {
+        "title": "连续插入与删除",
+        "problem": "L=(10,20,30,40,50)，容量至少6。先在位序2插入15，再删除新表位序5，给出各次移动次数及最终表。",
+        "steps": [
+          "插入前n=5，右移原下标4、3、2、1，共5−2+1=4个元素。",
+          "写入elem[1]=15，得到(10,15,20,30,40,50)，长度6。",
+          "新表位序5是40；删除时只需把50左移，共6−5=1个。",
+          "长度减为5，得到(10,15,20,30,50)。"
+        ],
+        "answer": "插入移动4个，删除移动1个、删值40；最终(10,15,20,30,50)。",
+        "origin": "original",
+        "sourceNote": "自编连续操作例题，依据算法2.4—2.5；印刷27—29页，PDF39—41页。"
+      },
+      "code": {
+        "language": "c",
+        "label": "重构类C示例（C指针接口，非教材源码逐字转写）",
+        "text": "typedef struct { int elem[100]; int length; } SqList;\nint ListInsert(SqList *L, int i, int e) {\n    if (!L || i < 1 || i > L->length + 1) return 0;\n    if (L->length == 100) return 0;\n    for (int j = L->length - 1; j >= i - 1; --j)\n        L->elem[j + 1] = L->elem[j];\n    L->elem[i - 1] = e;\n    ++L->length;\n    return 1;\n}\nint ListDelete(SqList *L, int i, int *out) {\n    if (!L || !out || i < 1 || i > L->length) return 0;\n    *out = L->elem[i - 1];\n    for (int j = i; j < L->length; ++j)\n        L->elem[j - 1] = L->elem[j];\n    --L->length;\n    return 1;\n}",
+        "notes": [
+          "使用固定数组SqList，容量100，1起始位序；调用前须满足0≤length≤100。",
+          "输出out必须是独立有效int对象，不与表的内部存储重叠；失败时不写out。",
+          "用C指针参数替代教材引用参数，新增参数检查与删除值输出，不是教材源码原样转写。"
+        ]
+      },
+      "source": {
+        "section": "2.4.2 顺序表的插入与删除，算法2.4—2.5",
+        "printedPages": [
+          27,
+          29
+        ],
+        "pdfPages": [
+          39,
+          41
+        ],
+        "verified": "text"
+      },
+      "related": [
+        "ch02-sequential-address",
+        "ch02-sequential-search"
+      ]
+    },
+    {
+      "id": "ch02-linked-head-insert",
+      "title": "带头结点单链表与头插法",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "fill",
+        "calculation",
+        "coding"
+      ],
+      "examEvidence": {
+        "level": "explicit",
+        "note": "范围依据第二章明确列出顺序表查找、插入、地址计算及单链表头插、尾插和代码；这里据此安排训练，不承诺具体命题或分值。"
+      },
+      "summary": "本知识点统一采用带头结点的非循环单链表：L指向头结点，头结点不作为有效数据元素计数，首元结点由L->next指向，尾结点的next为NULL。头插法每次把新结点接在头结点之后，故按某顺序读入数据后，最终数据次序与读入次序相反。头插的核心不在申请结点，而在正确保存原首元链，再让头结点指向新结点；交换这两条接链语句可能制造自环并丢失原链。",
+      "concepts": [
+        {
+          "term": "三个“头”的区别",
+          "definition": "头指针是指针变量，头结点是附加结点，首元结点保存第一个有效元素；它们不是同一概念。初始化后空表L不为NULL，而L->next为NULL。"
+        },
+        {
+          "term": "头插不变式",
+          "definition": "处理完前k个输入后，头结点后的链恰为这k个输入的逆序，每个结点都可从L到达，最后一个结点next为NULL。"
+        },
+        {
+          "term": "局部插入与整体建表",
+          "definition": "已知头结点时插入一个新结点只改常数个指针，时间O(1)；连续插入n个输入建表时间O(n)，新增n个数据结点另加一个头结点。"
+        }
+      ],
+      "steps": [
+        "建立或确认有效头结点，并令空表L->next=NULL。",
+        "申请新结点p、检查分配结果，再写入数据域。",
+        "先执行p->next=L->next保存原首元链，再执行L->next=p完成接入。",
+        "处理下一个输入；模拟时每步都从L->next重画实际逻辑顺序。"
+      ],
+      "formulas": [
+        {
+          "label": "头插建表的次序",
+          "expression": "输入a1,a2,…,an，结果an,…,a2,a1",
+          "condition": "每次插在同一头结点之后，n可为0。"
+        }
+      ],
+      "pitfalls": [
+        "带头结点的空表不是L==NULL；L==NULL通常说明头结点尚未建立。",
+        "先写L->next=p，再写p->next=L->next，会让p指向自身。",
+        "不能把一次局部接链O(1)说成按位序查找前驱也O(1)；寻找结点通常还要遍历。"
+      ],
+      "example": {
+        "title": "逐次头插并检验指针顺序",
+        "problem": "对空的带头结点单链表依次输入3、5、7并头插，求最终序列；若先写L->next=p再写p->next=L->next会怎样？",
+        "steps": [
+          "初始L->next=NULL。插入3后，链为头→3→NULL。",
+          "插入5时先让5指向原3，再让头指向5，链为头→5→3→NULL。",
+          "插入7后为头→7→5→3→NULL，逆于输入顺序。",
+          "错误写法中第二句读到的L->next已经是p，故p->next=p形成自环，原链失去头指针入口。"
+        ],
+        "answer": "正确结果(7,5,3)；交换两句会造成新结点自环并丢失原首元链的入口。",
+        "origin": "original",
+        "sourceNote": "自编指针推演，依据2.5.1及算法2.11文字，不猜测图中地址；印刷30—37页，PDF42—49页。"
+      },
+      "code": {
+        "language": "c",
+        "label": "重构类C示例（C指针接口，非教材源码逐字转写）",
+        "text": "#include <stdlib.h>\ntypedef struct LNode { int data; struct LNode *next; } LNode, *LinkList;\nint PushFront(LinkList L, int e) {\n    if (!L) return 0;\n    LNode *p = malloc(sizeof *p);\n    if (!p) return 0;\n    p->data = e;\n    p->next = L->next;\n    L->next = p;\n    return 1;\n}",
+        "notes": [
+          "L必须是已分配的头结点，头结点数据域不计入线性表；调用前链表无环且next有效。",
+          "函数每成功调用一次完成一次头插；n=0时不调用即可保持空表。",
+          "malloc失败返回0且原链不变；调用者负责最终释放全部数据结点和头结点。"
+        ]
+      },
+      "source": {
+        "section": "2.5.1 单链表的定义和表示；2.5.2 前插法创建单链表，算法2.11",
+        "printedPages": [
+          30,
+          37
+        ],
+        "pdfPages": [
+          42,
+          49
+        ],
+        "verified": "text"
+      },
+      "related": [
+        "ch02-linked-tail-insert"
+      ]
+    },
+    {
+      "id": "ch02-linked-tail-insert",
+      "title": "尾插法、前驱操作与存储取舍",
+      "priority": "focus",
+      "examTypes": [
+        "choice",
+        "calculation",
+        "coding"
+      ],
+      "examEvidence": {
+        "level": "explicit",
+        "note": "范围依据第二章明确列出顺序表查找、插入、地址计算及单链表头插、尾插和代码；这里据此安排训练，不承诺具体命题或分值。"
+      },
+      "summary": "尾插法用尾指针r保持最后一个结点的位置，每读入一个新值，就把新结点接在r之后并更新r。带头结点的空表将r初始化为L，可使第一个数据结点与后续结点采用同样的接链步骤。尾插保留输入顺序；若每插一个结点都从头重新寻找表尾，整个建表会从O(n)退化到O(n²)。链表插删是否高效，也取决于是否已经得到所需前驱，不能只看最终改了几条指针。",
+      "concepts": [
+        {
+          "term": "尾插不变式",
+          "definition": "每轮结束后，r指向最后一个数据结点；尚未插入任何数据时r=L。始终维持r->next=NULL，从L可遍历到已读入的全部元素，次序与输入一致。"
+        },
+        {
+          "term": "按前驱删除",
+          "definition": "带头结点单链表删除某结点q时，先找到其前驱p，再令p->next=q->next，最后释放q。先释放后读取q->next是访问已释放存储。"
+        },
+        {
+          "term": "顺序表与链表比较",
+          "definition": "顺序表按位序取值方便但中间插删要移动；链表无需整体搬移却有指针开销，按位序定位仍需遍历。循环、双向等变体会改变表示和操作条件，不能套用本节全部结论。"
+        }
+      ],
+      "steps": [
+        "建立头结点令L->next=NULL，并置r=L。",
+        "为输入值建立p，先令p->next=NULL，保证其可作为新尾结点。",
+        "依次执行r->next=p、r=p，维持尾指针不变式。",
+        "建表失败时释放本次已建结点；处理删除时先保存后继再释放原结点，并检查是否另有持久尾指针需更新。"
+      ],
+      "formulas": [
+        {
+          "label": "建表时间",
+          "expression": "维护尾指针时O(n)；每次遍历找尾时Σ(k=0..n−1)k=O(n²)",
+          "condition": "对n个元素逐个尾插，不把输入读取的外部成本另行放大。"
+        }
+      ],
+      "pitfalls": [
+        "忘记r=p会使下一次插入覆盖原尾的后继，导致部分链丢失。",
+        "尾插不是往数组高地址写入，结点实际地址可以不连续。",
+        "这里建表局部变量r在函数结束后不保留；若另设计含尾指针的表结构，删除尾结点必须同步更新它。"
+      ],
+      "example": {
+        "title": "尾插建表后删除首个匹配值",
+        "problem": "尾插输入(4,9,4)，然后删除首个值为4的结点。说明构造次序与删除指针变化。",
+        "steps": [
+          "初始r=L。插入4后r指向首个4；再插9与末个4，链为头→4→9→4→NULL。",
+          "删除时从头结点找前驱p=L，q=p->next即首个4。",
+          "先令p->next=q->next使头直接连到9，再释放q。",
+          "剩余链为头→9→4→NULL，末个4保留；空表或无匹配值应报告未找到且不改链。"
+        ],
+        "answer": "尾插保持(4,9,4)，删除首个匹配后为(9,4)，不能把两个4都删除。",
+        "origin": "original",
+        "sourceNote": "自编建表与删除例题，依据算法2.10、2.12及2.6比较；印刷35—40页，PDF47—52页。"
+      },
+      "code": {
+        "language": "c",
+        "label": "重构类C示例（C指针接口，非教材源码逐字转写）",
+        "text": "#include <stdlib.h>\ntypedef struct LNode { int data; struct LNode *next; } LNode, *LinkList;\n/* out指向已初始化为NULL的变量；成功才发布结果。 */\nint BuildTail(LinkList *out, const int a[], int n) {\n    if (!out || *out != NULL || n < 0 || (n > 0 && !a)) return 0;\n    LinkList L = malloc(sizeof *L);\n    if (!L) return 0;\n    L->next = NULL;\n    LNode *r = L;\n    for (int i = 0; i < n; ++i) {\n        LNode *p = malloc(sizeof *p);\n        if (!p) {\n            while (L) {\n                LNode *q = L->next;\n                free(L);\n                L = q;\n            }\n            return 0;\n        }\n        p->data = a[i];\n        p->next = NULL;\n        r->next = p;\n        r = p;\n    }\n    *out = L;\n    return 1;\n}",
+        "notes": [
+          "out指向已初始化为NULL的LinkList变量；n≥0，n>0时a含至少n个有效int，且out不与输入重叠。",
+          "n=0仍创建带头结点的空表。成功返回1并写入*out，失败返回0且*out仍为NULL，已申请空间在失败分支释放。",
+          "该版本将教材输入流改为数组，并补入分配失败处理；调用者最终释放整条链，代码不是教材逐字转写。"
+        ]
+      },
+      "source": {
+        "section": "2.5.2 单链表删除与后插法，算法2.10、2.12；2.6 顺序表和链表的比较",
+        "printedPages": [
+          35,
+          40
+        ],
+        "pdfPages": [
+          47,
+          52
+        ],
+        "verified": "text"
+      },
+      "related": [
+        "ch02-linked-head-insert",
+        "ch02-sequential-update"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "ch02-q01",
+      "type": "choice",
+      "topicId": "ch02-sequential-address",
+      "prompt": "逻辑位序从1开始、数组下标从0开始的顺序表中，第i个有效元素对应哪个位置？",
+      "answer": 1,
+      "explanation": "逻辑位序i与数组下标相差1；合法取值范围为1≤i≤length。",
+      "steps": [
+        "区分位序和下标。",
+        "把a1对应elem[0]推广到ai。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。",
+      "options": [
+        "elem[i]",
+        "elem[i-1]",
+        "elem[i+1]",
+        "elem[length-i+1]"
+      ]
+    },
+    {
+      "id": "ch02-q02",
+      "type": "calculation",
+      "topicId": "ch02-sequential-address",
+      "prompt": "顺序表有8个有效元素，每个元素固定占12字节，elem[0]起始地址为2048。求第6个元素及elem[6]的起始地址。",
+      "answer": "第6个元素为elem[5]，地址2048+5×12=2108；elem[6]是第7个元素，地址2048+6×12=2120。",
+      "explanation": "两个目标都在8个有效元素范围内。基地址对应下标0，因此位序需要减1，下标已经是相对偏移个数。",
+      "steps": [
+        "将位序6换成下标5。",
+        "第6个元素偏移60字节，得2108。",
+        "elem[6]偏移72字节，得2120。"
+      ],
+      "points": 5,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。"
+    },
+    {
+      "id": "ch02-q03",
+      "type": "fill",
+      "fillKind": "program",
+      "topicId": "ch02-sequential-search",
+      "prompt": "补全首次命中返回1起始位序的顺序查找。L有效，0≤length≤100，结构为{int elem[100]; int length;}。空表应返回失败标记。",
+      "answer": "___1___填j+1；___2___填0。",
+      "explanation": "成功返回位序而不是下标，失败返回0。对(8,3,8)查8时返回1；空表循环零次后返回0。",
+      "steps": [
+        "从下标0开始依次比较。",
+        "命中时将下标j转换为位序j+1。",
+        "循环结束返回0表示失败。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。",
+      "code": "int LocateElem(const SqList *L, int e) {\n    for (int j=0; j<L->length; ++j)\n        if (L->elem[j]==e) return ___1___;\n    return ___2___;\n}",
+      "blanks": [
+        {
+          "answer": "j + 1",
+          "alternatives": [
+            "1 + j"
+          ],
+          "hint": "返回逻辑位序，不是数组下标。"
+        },
+        {
+          "answer": "0",
+          "alternatives": [],
+          "hint": "与全部合法位序区别的失败标记。"
+        }
+      ]
+    },
+    {
+      "id": "ch02-q04",
+      "type": "choice",
+      "topicId": "ch02-sequential-search",
+      "prompt": "无序顺序表有n个有效元素。关于给定位序取值与按值顺序查找的最坏时间，正确的是？",
+      "answer": 0,
+      "explanation": "顺序表按位序可以直接寻址，取值O(1)；按值查找可能检查全部n个元素，因此最坏O(n)。",
+      "steps": [
+        "先区分已知位置还是只知道目标值。",
+        "分别判断直接寻址与线性比较的代价。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。",
+      "options": [
+        "取值O(1)，查找O(n)",
+        "取值O(n)，查找O(1)",
+        "两者均O(1)",
+        "两者均O(log n)"
+      ]
+    },
+    {
+      "id": "ch02-q05",
+      "type": "fill",
+      "fillKind": "program",
+      "topicId": "ch02-sequential-update",
+      "prompt": "补全顺序表插入核心。SqList为{int elem[100]; int length;}，L有效且表示正确，1≤i≤length+1，length<100；i是插入位序。",
+      "answer": "___1___填i-1；___2___填L->elem[j]；___3___填i-1。",
+      "explanation": "必须从后向前移动，包含原下标i−1，最后把新元素放在该下标。空表i=1时j=-1，循环不执行，但仍正确写入elem[0]。",
+      "steps": [
+        "原末元素下标length−1。",
+        "移到插入位置i−1为止，保留原值。",
+        "写入e并使长度加1。"
+      ],
+      "points": 6,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。",
+      "code": "int j;\nfor (j=L->length-1; j>=___1___; --j)\n    L->elem[j+1] = ___2___;\nL->elem[___3___] = e;\n++L->length;",
+      "blanks": [
+        {
+          "answer": "i - 1",
+          "alternatives": [
+            "(i - 1)"
+          ],
+          "hint": "第i个位序对应的下标。"
+        },
+        {
+          "answer": "L->elem[j]",
+          "alternatives": [
+            "*(L->elem + j)"
+          ],
+          "hint": "把当前位置的旧元素向后移动一格。"
+        },
+        {
+          "answer": "i - 1",
+          "alternatives": [
+            "(i - 1)"
+          ],
+          "hint": "移动结束后新元素应填的位置。"
+        }
+      ]
+    },
+    {
+      "id": "ch02-q06",
+      "type": "calculation",
+      "topicId": "ch02-sequential-update",
+      "prompt": "L=(10,20,30,40,50)，容量至少6。先在第2个位序插入15，再删除新表第5个元素。分别求移动元素个数、被删值和最终表。",
+      "answer": "插入移动4个；插后(10,15,20,30,40,50)。删除移动1个，被删值40；最终(10,15,20,30,50)。",
+      "explanation": "两次操作的n不同，第二次必须使用插入后的长度6。移动个数不包括新值赋值或保存被删值。",
+      "steps": [
+        "插入移动5−2+1=4个。",
+        "更新长度为6并列出新表。",
+        "删除第5个即40，移动6−5=1个。",
+        "长度减为5并列出最终表。"
+      ],
+      "points": 5,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。"
+    },
+    {
+      "id": "ch02-q07",
+      "type": "coding",
+      "topicId": "ch02-sequential-update",
+      "prompt": "编写删除顺序表第i个元素的核心函数ListDelete(SqList *L,int i,int *out)。SqList为{int elem[100]; int length;}，0≤length≤100；位序从1开始。out为独立输出对象。成功返回1并写出删值，非法参数或空表返回0且不改表、不改out。",
+      "answer": "int ListDelete(SqList *L, int i, int *out) {\n    if (!L || !out || i < 1 || i > L->length) return 0;\n    *out = L->elem[i - 1];\n    for (int j = i; j < L->length; ++j)\n        L->elem[j - 1] = L->elem[j];\n    --L->length;\n    return 1;\n}",
+      "explanation": "重构类C示例。先验证L、out和合法位序，先保存删值，再前移后续元素，最后减长度。删除尾元素时循环不执行；删除唯一元素后长度为0。",
+      "steps": [
+        "检查L及out非空，且1≤i≤length。",
+        "保存elem[i−1]到*out。",
+        "对j=i..length−1执行elem[j−1]=elem[j]。",
+        "减length并返回1；如(2,4,6)删位序2，输出4、表变为(2,6)。"
+      ],
+      "points": 5,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。"
+    },
+    {
+      "id": "ch02-q08",
+      "type": "choice",
+      "topicId": "ch02-linked-head-insert",
+      "prompt": "L已指向一个有效头结点，采用带头结点非循环单链表。哪项表示空表？",
+      "answer": 2,
+      "explanation": "空表保留头结点，数据链为空，故L->next==NULL；L==NULL表示头结点不存在，不是本题已初始化表示下的空表。",
+      "steps": [
+        "按题干确认有头结点。",
+        "检查第一个数据结点是否存在。"
+      ],
+      "points": 2,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。",
+      "options": [
+        "L==NULL",
+        "L->data==0",
+        "L->next==NULL",
+        "L->next==L"
+      ]
+    },
+    {
+      "id": "ch02-q09",
+      "type": "fill",
+      "fillKind": "program",
+      "topicId": "ch02-linked-head-insert",
+      "prompt": "L是带头结点单链表，p为已分配且data已写好的新结点。按顺序补全一次头插，必须保存原数据链。",
+      "answer": "___1___填L->next；___2___填p。",
+      "explanation": "第一句让新结点指向旧首元，第二句才让头结点指向新结点；次序不可颠倒。旧链为空时第一句赋NULL，同样有效。",
+      "steps": [
+        "读出旧首元L->next。",
+        "将其作为p的后继。",
+        "再更新头结点入口。"
+      ],
+      "points": 4,
+      "difficulty": "基础",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。",
+      "code": "p->next = ___1___;\nL->next = ___2___;",
+      "blanks": [
+        {
+          "answer": "L->next",
+          "alternatives": [
+            "(L->next)"
+          ],
+          "hint": "接住原首元结点。"
+        },
+        {
+          "answer": "p",
+          "alternatives": [
+            "(p)"
+          ],
+          "hint": "新首元结点。"
+        }
+      ]
+    },
+    {
+      "id": "ch02-q10",
+      "type": "calculation",
+      "topicId": "ch02-linked-tail-insert",
+      "prompt": "分别从空的带头结点单链表出发，按输入顺序3、5、7调用头插法和维护尾指针的尾插法。给出每次插入后的数据序列，以及两种建表的总时间复杂度。",
+      "answer": "头插：(3)→(5,3)→(7,5,3)；尾插：(3)→(3,5)→(3,5,7)。两种建n个结点均为O(n)，假定每次申请和接链成本为O(1)。",
+      "explanation": "头插总插在旧首元之前，尾插总接到r之后并更新r，故一个逆序、一个保序。此处尾插明确维护r，不存在每次遍历找尾的二次代价。",
+      "steps": [
+        "头插在每一步把当前输入放到序列最前。",
+        "尾插在每一步把当前输入放到序列最后。",
+        "每个输入只做常数次接链，共n轮。"
+      ],
+      "points": 5,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。"
+    },
+    {
+      "id": "ch02-q11",
+      "type": "coding",
+      "topicId": "ch02-linked-tail-insert",
+      "prompt": "给出带头结点单链表尾插建表函数BuildTail(LinkList *out,const int a[],int n)。LNode含int data和LNode *next；out指向初值为NULL的变量，n>0时a有n个元素。n=0创建仅有头结点的空表；参数或分配失败返回0，释放本次已申请存储且*out不变；成功返回1并发布头指针。",
+      "answer": "#include <stdlib.h>\ntypedef struct LNode { int data; struct LNode *next; } LNode, *LinkList;\n/* out指向已初始化为NULL的变量；成功才发布结果。 */\nint BuildTail(LinkList *out, const int a[], int n) {\n    if (!out || *out != NULL || n < 0 || (n > 0 && !a)) return 0;\n    LinkList L = malloc(sizeof *L);\n    if (!L) return 0;\n    L->next = NULL;\n    LNode *r = L;\n    for (int i = 0; i < n; ++i) {\n        LNode *p = malloc(sizeof *p);\n        if (!p) {\n            while (L) {\n                LNode *q = L->next;\n                free(L);\n                L = q;\n            }\n            return 0;\n        }\n        p->data = a[i];\n        p->next = NULL;\n        r->next = p;\n        r = p;\n    }\n    *out = L;\n    return 1;\n}",
+      "explanation": "重构类C示例。尾指针初值为头结点，每轮p->next=NULL、r->next=p、r=p。成功前仅修改局部链，失败清理后保持*out为NULL；调用者需最终释放成功构造的整条链。",
+      "steps": [
+        "验证out、初值、n及输入数组。",
+        "分配头结点，令next为空并置r=L。",
+        "逐个申请并写数据，先连新结点，再更新r。",
+        "全部成功后写*out=L；例如a=(3,5,7)得到头→3→5→7→NULL。",
+        "分配失败清理从L出发的全部已建结点。"
+      ],
+      "points": 5,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。"
+    },
+    {
+      "id": "ch02-q12",
+      "type": "coding",
+      "topicId": "ch02-linked-tail-insert",
+      "prompt": "实现DeleteFirst(LinkList L,int x,int *out)，删除带头结点、非循环单链表中首个值为x的数据结点。使用标准C动态结点，LNode含int data和next，表示中不另保存尾指针。out不与链表结点重叠。成功返回1并输出删值；空表、无匹配或空参数返回0，不改原链与out。",
+      "answer": "#include <stdlib.h>\ntypedef struct LNode { int data; struct LNode *next; } LNode, *LinkList;\nint DeleteFirst(LinkList L, int x, int *out) {\n    if (!L || !out) return 0;\n    LNode *p = L;\n    while (p->next && p->next->data != x) p = p->next;\n    LNode *q = p->next;\n    if (!q) return 0;\n    *out = q->data;\n    p->next = q->next;\n    free(q);\n    return 1;\n}",
+      "explanation": "重构类C示例。用p寻找目标前驱，q保存目标；先重接后继再释放q。重复值只删首个，删唯一结点后L->next=NULL；无额外尾指针故不需维护rear。",
+      "steps": [
+        "先检查L、out。",
+        "从头结点开始寻找p->next的首个匹配。",
+        "无匹配返回0；否则保存数据，p->next=q->next，再free(q)。",
+        "对头→4→9→4删4，返回1、输出4，剩头→9→4；空表返回0。"
+      ],
+      "points": 5,
+      "difficulty": "进阶",
+      "origin": "original",
+      "sourceNote": "自编训练题，按对应知识点的教材定义或算法思想重构，非教材原题；所含代码均为重构类C示例，采用题干明示的接口与边界。"
+    }
+  ]
+}
