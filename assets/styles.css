@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   color-scheme: light;
   --paper: #f4f5f1;
   --surface: #ffffff;
@@ -26,7 +26,7 @@ button { cursor: pointer; }
 a { color: inherit; }
 .skip-link { position: absolute; left: -999px; top: 8px; z-index: 10; padding: 10px; background: white; }
 .skip-link:focus { left: 8px; }
-.topbar { height: 72px; padding: 0 clamp(18px, 4vw, 52px); display: flex; align-items: center; justify-content: space-between; background: #fbfcf9; border-bottom: 1px solid var(--line); }
+.topbar { height: 72px; padding: 0 clamp(18px, 4vw, 52px); display: flex; align-items: center; justify-content: space-between; background: var(--surface); border-bottom: 1px solid var(--line); }
 .brand { display: inline-flex; gap: 12px; align-items: center; text-decoration: none; }
 .brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: var(--pine); color: #effbf5; font-weight: 800; letter-spacing: -2px; font-size: 17px; box-shadow: 0 5px 12px #0f5d5329; }
 .brand-mark span { color: var(--lime); }
@@ -177,7 +177,7 @@ h3 { margin-bottom: 8px; font-size: 16px; }
   .topbar { height: 62px; padding-inline: 14px; }
   .topbar-note { max-width: 150px; text-align: right; font-size: 10px; }
   .shell { display: block; min-height: auto; }
-  .sidebar { position: sticky; z-index: 5; top: 0; overflow-x: auto; padding: 7px 9px; border: 0; border-bottom: 1px solid var(--line); background: #f8faf7f2; backdrop-filter: blur(12px); }
+  .sidebar { position: sticky; z-index: 5; top: 0; overflow-x: auto; padding: 7px 9px; border: 0; border-bottom: 1px solid var(--line); background: var(--surface); backdrop-filter: blur(12px); }
   .sidebar-label,.sidebar-bottom { display: none; }
   .primary-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
   .nav-item { justify-content: center; min-height: 38px; gap: 3px; padding-inline: 3px; white-space: nowrap; font-size: 11px; }
@@ -202,5 +202,67 @@ h3 { margin-bottom: 8px; font-size: 16px; }
   .scope-table { font-size: 10px; }
   .scope-table th,.scope-table td { padding: 8px 5px; }
   .site-footer { flex-direction: column; padding: 15px; }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #111714;
+  --surface: #1a2420;
+  --ink: #e6ede9;
+  --muted: #a8b7af;
+  --line: #34423b;
+  --pine: #286e62;
+  --pine-deep: #173c36;
+  --mint: #28483e;
+  --lime: #c8e59a;
+  --shadow: 0 14px 36px rgba(0, 0, 0, .32);
+}
+:root[data-theme="dark"] .skip-link { background: var(--surface); color: var(--ink); }
+:root[data-theme="dark"] .sidebar-label,
+:root[data-theme="dark"] .site-footer { color: var(--muted); }
+:root[data-theme="dark"] .nav-item { color: var(--muted); }
+:root[data-theme="dark"] .nav-item:hover { background: #25352f; color: #d0eee3; }
+:root[data-theme="dark"] .nav-item.is-active { color: #fff; }
+:root[data-theme="dark"] .nav-count { background: #2d3d36; color: #d6e1db; }
+:root[data-theme="dark"] .button.secondary { background: #222e29; color: var(--ink); }
+:root[data-theme="dark"] .button.secondary:hover { border-color: #52786b; background: #293a33; }
+:root[data-theme="dark"] .chapter-card:nth-child(4n+2) .chapter-number { background: #463824; color: #f0cc8b; }
+:root[data-theme="dark"] .chapter-card:nth-child(4n+3) .chapter-number { background: #303344; color: #c7cafa; }
+:root[data-theme="dark"] .chapter-card:nth-child(4n) .chapter-number { background: #472e2a; color: #f0b2a4; }
+:root[data-theme="dark"] .note-card { border-color: #59492e; background: #30291d; color: #edce94; }
+:root[data-theme="dark"] .input,
+:root[data-theme="dark"] .select { border-color: var(--line); background: #151e1a; color: var(--ink); }
+:root[data-theme="dark"] .checkbox-label { color: var(--muted); }
+:root[data-theme="dark"] .pill { background: #29443a; color: #a9ddc8; }
+:root[data-theme="dark"] .pill.amber { background: #40351f; color: #efd39a; }
+:root[data-theme="dark"] .pill.blue { background: #303748; color: #c3ccef; }
+:root[data-theme="dark"] .pill.rose { background: #452f2c; color: #f0b4a6; }
+:root[data-theme="dark"] .topic-summary,
+:root[data-theme="dark"] .topic-body ul,
+:root[data-theme="dark"] .topic-body ol,
+:root[data-theme="dark"] .answer-content,
+:root[data-theme="dark"] .self-check label { color: var(--muted); }
+:root[data-theme="dark"] .topic-body h4 { color: #c3d0c9; }
+:root[data-theme="dark"] .example-box { background: #202b26; }
+:root[data-theme="dark"] .example-box strong { color: #c1e0d2; }
+:root[data-theme="dark"] .source-line { color: #a0afa7; }
+:root[data-theme="dark"] .option { border-color: #35443d; background: #1c2722; color: #dce7e1; }
+:root[data-theme="dark"] .option:hover { border-color: #5a8575; background: #24352e; }
+:root[data-theme="dark"] .hint { color: #a1afa8; }
+:root[data-theme="dark"] .answer-details { border-color: var(--line); }
+:root[data-theme="dark"] .result-line.good { background: #193b2c; color: #a6e1ba; }
+:root[data-theme="dark"] .result-line.bad { background: #442723; color: #ffaaa0; }
+:root[data-theme="dark"] .result-line.pending { background: #3c3525; color: #ecd08f; }
+:root[data-theme="dark"] .mock-item,
+:root[data-theme="dark"] .trace-step,
+:root[data-theme="dark"] .loading-card { background: var(--surface); }
+:root[data-theme="dark"] .empty-state { border-color: #4a5a51; background: #18221d; color: var(--muted); }
+:root[data-theme="dark"] .trace-values span { background: #263d33; color: #d0e8da; }
+.topbar-tools { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.theme-toggle { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font-size: 18px; line-height: 1; transition: background .15s, border-color .15s, transform .15s; }
+.theme-toggle:hover { transform: translateY(-1px); border-color: var(--pine); }
+.theme-toggle:focus-visible { outline: 3px solid var(--pine); outline-offset: 2px; }
+@media (max-width: 620px) {
+  .topbar-tools { gap: 8px; }
+  .topbar-note { max-width: 145px; }
 }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; transition: none !important; } }

@@ -180,6 +180,24 @@ function renderKmpTrace(result) {
 const scopeRows=[['1 绪论','数据、数据元素、抽象数据类型与算法分析。','算法性质和复杂度是基础；按章节自编选择练习。'],['2 线性表','顺序表插入/查找与单链表头插、尾插。','程序训练标明下标和带/不带头结点。'],['3 栈和队列','LIFO、FIFO；顺序栈与循环队列操作。','循环队列留一空位时，空front==rear，满(rear+1)%M==front。'],['4 串、数组和广义表','BF/KMP与next约定、数组地址、广义表辨析。','广义表优先选择题；是否只考选择待核实。'],['5 树和二叉树','遍历与充分序列建树；哈夫曼树和WPL。','输入足以唯一确定树；哈夫曼并列接受等价最优树。'],['6 图','遍历、最小生成树、最短路径。','纪要对综合应用含条件句，不标成必考。'],['7 查找','折半查找及代码；二叉排序树构造。','边界使用闭区间，重复键策略单独说明。'],['8 排序','插入、希尔、冒泡、快速；堆与归并基础。','希尔增量、快排分区方法显式给出。']];
 function scopeView(){shell('考试范围与教材依据','SCOPE & SOURCES','各主题附有教材节号与页码，复习顺序参照考试纪要。',`<div class="note-card" style="margin-top:18px"><span class="note-icon">ⓘ</span><span>纪要正文与饼图将选择题列为 40 分，概览图列为 20 分。模拟卷采用 40 分，正式分值待确认。</span></div><div class="panel" style="margin-top:15px;overflow:auto"><table class="scope-table"><thead><tr><th>章节</th><th>复习重点</th><th>口径</th></tr></thead><tbody>${scopeRows.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div><div class="grid-two" style="margin-top:14px"><article class="panel"><h3>纪要与教材对照</h3><ul><li>留一空位的循环队列用 <code>front == rear</code> 判空，用 <code>(rear + 1) % M == front</code> 判满。见教材 §3.5.2，印刷第79页。</li><li>教材顺序栈的 <code>top</code> 指向下一空位，<code>top == base</code> 时为空。见教材 §3.3.2，印刷第66页。</li></ul></article><article class="panel"><h3>训练题来源</h3><p>题库采用自编练习。知识点同时列出教材印刷页和 PDF 物理页，正文相差 12 页。正式题量和考试日期以老师通知为准。</p></article></div>`)}
 function draw(){if(!D?.chapters?.length){app.innerHTML='<div class="empty-state">缺少题库，请运行构建脚本生成 dist。</div>';return}({overview,chapters:chaptersView,chapter:chapterView,practice:practiceView,quiz:quizView,mock:mockView,wrong:wrongView,lab:labView,scope:scopeView}[S.view]||overview)();nav()}
+const themeToggle=$('#theme-toggle');
+const themeStorageKey='ds-final-review-theme-v1';
+let savedTheme=null;
+try{savedTheme=localStorage.getItem(themeStorageKey)}catch{}
+const systemTheme=matchMedia('(prefers-color-scheme: dark)');
+let hasSavedTheme=savedTheme==='dark'||savedTheme==='light';
+function setTheme(theme,persist=false){
+  const dark=theme==='dark';
+  document.documentElement.dataset.theme=dark?'dark':'light';
+  if(themeToggle){themeToggle.setAttribute('aria-pressed',String(dark));themeToggle.title=dark?'切换为浅色主题':'切换为暗色主题';themeToggle.innerHTML=`<span aria-hidden="true">${dark?'☀':'☾'}</span>`}
+  $('meta[name="theme-color"]')?.setAttribute('content',dark?'#111714':'#f4f5f1');
+  if(persist)try{localStorage.setItem(themeStorageKey,dark?'dark':'light')}catch{}
+}
+if(themeToggle){
+  setTheme(hasSavedTheme?savedTheme:systemTheme.matches?'dark':'light');
+  if(!hasSavedTheme)systemTheme.addEventListener('change',event=>{if(!hasSavedTheme)setTheme(event.matches?'dark':'light')});
+  themeToggle.addEventListener('click',()=>{hasSavedTheme=true;setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark',true)});
+}
 document.addEventListener('click',e=>{let n=e.target.closest('[data-view]');if(n){show(n.dataset.view);return}let b=e.target.closest('[data-action]');if(!b)return;let a=b.dataset.action;if(a==='chapter'){S.chapter=b.dataset.id;show('chapter')}else if(a==='chapter-quiz'){let c=cm.get(b.dataset.id);startQuiz(C.shuffle(c.questions),`第${c.number}章 · ${c.title}练习`)}else if(a==='topic-quiz'){let c=cm.get(b.dataset.ch);startQuiz(c.questions.filter(q=>q.topicId===b.dataset.topic),`${c.title} · 主题练习`)}else if(a==='master'){let id=b.dataset.id;S.progress.mastered=S.progress.mastered.includes(id)?S.progress.mastered.filter(x=>x!==id):[...S.progress.mastered,id];save();draw()}else if(a==='mock'){try{let sec=C.buildExam(chapters,Date.now());Object.values(sec).flat().forEach(q=>{q.chapterId=q.id.slice(0,4);q.chapterTitle=cm.get(q.chapterId)?.title||''});startQuiz(Object.values(sec).flat(),'100分模拟练习','mock',sec)}catch(x){alert(x.message)}}else if(a==='new-quiz')show(S.quiz.kind==='mock'?'mock':S.quiz.kind==='wrong'?'wrong':'practice');else if(a==='retry'){let qs=S.progress.wrong.map(id=>qm.get(id)).filter(Boolean);startQuiz(qs,'错题重练','wrong')}else if(a==='export'){let u=URL.createObjectURL(new Blob([C.exportProgress(S.progress)],{type:'application/json'})),x=document.createElement('a');x.href=u;x.download='data-structures-review-progress.json';x.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}else if(a==='lab-kind'){S.lab=b.dataset.kind;S.trace=null;draw()}});
 function gradeCurrentQuiz(form) {
   const quiz = S.quiz;

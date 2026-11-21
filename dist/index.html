@@ -6,6 +6,17 @@
   <meta name="theme-color" content="#f4f5f1">
   <meta name="description" content="离线数据结构期末复习：章节知识、算法步骤、题型训练和模拟卷。">
   <title>数据结构 · 期末复习</title>
+  <script>
+    (() => {
+      const key = 'ds-final-review-theme-v1';
+      let saved = null;
+      try { saved = localStorage.getItem(key); } catch {}
+      const theme = saved === 'light' || saved === 'dark'
+        ? saved
+        : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,7 +26,10 @@
       <span class="brand-mark" aria-hidden="true">D<span>S</span></span>
       <span><b>数据结构</b><small>FINAL REVIEW · 离线复习站</small></span>
     </a>
-    <div class="topbar-note"><span class="status-dot"></span> 本地运行 · 学习记录仅存于此浏览器</div>
+    <div class="topbar-tools">
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="暗色主题" aria-pressed="false" title="切换为暗色主题"><span aria-hidden="true">☾</span></button>
+      <div class="topbar-note"><span class="status-dot"></span> 本地运行 · 学习记录仅存于此浏览器</div>
+    </div>
   </header>
   <div class="shell">
     <aside class="sidebar">
